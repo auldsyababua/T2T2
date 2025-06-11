@@ -29,4 +29,44 @@ For each new session, please leave a time and date as well as notes from that se
 1. User needs to set up cloud services (see SETUP_CHECKLIST.md)
 2. Implement TelegramService for Telethon QR auth
 3. Implement RAGService for embeddings and search
-4. Connect frontend to backend API 
+4. Connect frontend to backend API
+
+---
+
+## 2025-06-11 18:00 PST - Added Logging, Tests, and CI/CD
+
+### What Was Done:
+1. **Comprehensive Logging**: 
+   - Created centralized logging utility with specialized functions
+   - Added logging to main app, database, and auth modules
+   - Logs include: API requests/responses, DB queries, Telegram events, embeddings
+   - Rotating file handler to prevent huge log files
+
+2. **Unit Test Framework**:
+   - Set up pytest with async support
+   - Created fixtures for mocking: DB, Telegram, OpenAI, Redis, S3
+   - Added tests for auth endpoints and database models
+   - Test coverage reporting configured
+
+3. **GitHub Actions CI/CD**:
+   - Backend CI: linting (black, ruff), tests, Docker build
+   - Frontend CI: type checking, linting, build
+   - Automatic on push/PR for relevant paths
+
+4. **Developer Experience**:
+   - Created `run_tests.sh` for local testing
+   - Only using necessary MCPs (GitHub, Filesystem)
+   - Clear separation of concerns
+
+### Why These Changes Increase Success:
+- **Logging**: Immediate visibility into what's happening
+- **Tests**: Catch errors before they cascade
+- **CI/CD**: Automated safety net on every commit
+- **Together**: Forms the "90% error reduction" pattern - smaller feedback loops
+
+### Current State:
+- All infrastructure ready for service implementations
+- Waiting on cloud service credentials:
+  - Supabase (PostgreSQL + pgvector)
+  - Upstash (Redis)
+  - AWS S3 (image storage) 

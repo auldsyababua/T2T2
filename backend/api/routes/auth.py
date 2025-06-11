@@ -12,9 +12,11 @@ import os
 
 from db.database import get_db
 from models.models import User
+from utils.logging import setup_logger, log_telegram_event, log_error_with_context
 
 router = APIRouter()
 security = HTTPBearer()
+logger = setup_logger(__name__)
 
 JWT_SECRET = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
@@ -33,6 +35,7 @@ class TelegramAuthData(BaseModel):
 
 def verify_telegram_auth(auth_data: dict) -> bool:
     """Verify Telegram Mini App initData HMAC"""
+    logger.debug(f"Verifying Telegram auth for user_id: {auth_data.get('id')}")
     check_hash = auth_data.pop('hash', '')
     
     # Create data-check-string
@@ -49,7 +52,9 @@ def verify_telegram_auth(auth_data: dict) -> bool:
         hashlib.sha256
     ).hexdigest()
     
-    return calculated_hash == check_hash
+    is_valid = calculated_hash == check_hash
+    logger.debug(f"Auth verification result: {is_valid}")
+    return is_valid
 
 
 @router.post("/telegram-auth")
