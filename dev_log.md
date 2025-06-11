@@ -1,0 +1,1 @@
+For each new session, please leave a time and date as well as notes from that session, including what was changed and why. Optimize it for use by an LLM to continue working where the last session left off. 
