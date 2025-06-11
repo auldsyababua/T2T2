@@ -1,0 +1,20 @@
+{
+  "servers": [
+    {
+      "name": "filesystem",
+      "description": "Read-only access to T2T2 project files",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/colinaulds/Desktop/projects/T2T2"],
+      "env": {}
+    },
+    {
+      "name": "brave-search",
+      "description": "Brave Search API for web queries",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    }
+  ]
+}

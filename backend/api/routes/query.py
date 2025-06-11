@@ -1,0 +1,91 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel
+from typing import List, Optional
+
+from db.database import get_db
+from api.routes.auth import get_current_user
+from models.models import User
+from services.rag_service import RAGService
+
+router = APIRouter()
+
+
+class QueryRequest(BaseModel):
+    query: str
+    max_results: int = 10
+    include_images: bool = True
+
+
+class QueryResponse(BaseModel):
+    answer: str
+    sources: List[dict]
+    confidence: float
+
+
+class Source(BaseModel):
+    text: str
+    url: str
+    date: str
+    chat_name: str
+    relevance_score: float
+
+
+@router.post("/", response_model=QueryResponse)
+async def query_messages(
+    request: QueryRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Query user's indexed messages using RAG"""
+    
+    rag_service = RAGService(db)
+    
+    # Set user context for RLS
+    await db.execute(f"SET app.user_id = {current_user.id}")
+    
+    try:
+        result = await rag_service.query(
+            user_id=current_user.id,
+            query=request.query,
+            max_results=request.max_results,
+            include_images=request.include_images
+        )
+        
+        return QueryResponse(
+            answer=result["answer"],
+            sources=result["sources"],
+            confidence=result["confidence"]
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/similar")
+async def find_similar_messages(
+    request: QueryRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Find messages similar to the query without generating an answer"""
+    
+    rag_service = RAGService(db)
+    
+    # Set user context for RLS
+    await db.execute(f"SET app.user_id = {current_user.id}")
+    
+    try:
+        similar_messages = await rag_service.find_similar(
+            user_id=current_user.id,
+            query=request.query,
+            max_results=request.max_results
+        )
+        
+        return {
+            "query": request.query,
+            "results": similar_messages
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
