@@ -9,8 +9,10 @@ Before starting ANY work, read these documents in order:
 1. **README.md** - Project overview and quick start
 2. **PRD.md** - Product requirements and technical decisions
 3. **AGENT_GUIDELINES.md** - Git checkpointing and development practices
-4. **dev_log.md** - Recent development history and current state
-5. **SETUP_CHECKLIST.md** - Cloud services setup status
+4. **ENVIRONMENT.md** - System dependencies and configuration
+5. **CRITICAL_PATHS.md** - Architecture and critical code paths
+6. **dev_log.md** - Recent development history and current state
+7. **SETUP_CHECKLIST.md** - Cloud services setup status
 
 ## Quick Context
 

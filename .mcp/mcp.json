@@ -8,13 +8,11 @@
       "env": {}
     },
     {
-      "name": "brave-search",
-      "description": "Brave Search API for web queries",
+      "name": "http-tool",
+      "description": "HTTP client for testing T2T2 API endpoints",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-      "env": {
-        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
-      }
+      "args": ["-y", "@modelcontextprotocol/server-http"],
+      "env": {}
     }
   ]
 }

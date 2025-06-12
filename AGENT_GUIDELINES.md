@@ -180,6 +180,27 @@ If development goes "off the rails":
 - Use todo item descriptions in commit messages for traceability
 - Example: `git commit -m "feat: implement OCR for screenshots (todo #6)"`
 
+## Documentation Refresh Protocol
+
+Every 10 commits or at session end, run a documentation refresh:
+
+1. **Update HANDOFF.md** if project structure changed
+2. **Update ENVIRONMENT.md** if dependencies changed
+3. **Update CRITICAL_PATHS.md** if architecture evolved
+4. **Run dev log rotation** if dev_log.md > 500 lines:
+   ```bash
+   python scripts/rotate_dev_log.py
+   ```
+
+5. **Verify documentation accuracy**:
+   ```bash
+   # Check if all referenced files exist
+   grep -oh '"[^"]*\.py:[0-9]*' CRITICAL_PATHS.md | while read f; do
+     file=$(echo $f | tr -d '"' | cut -d: -f1)
+     [ -f "backend/$file" ] && echo "✓ $file" || echo "✗ $file MISSING"
+   done
+   ```
+
 ## Remember
 
 **Your commits are the project's safety net. Commit early, commit often, and commit with clear messages. This discipline will save hours of debugging and enable smooth collaboration between agents.**

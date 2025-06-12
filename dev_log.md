@@ -156,4 +156,10 @@ For each new session, please leave a time and date as well as notes from that se
 ### Next Steps:
 1. Ensure all agents read AGENT_GUIDELINES.md at session start
 2. Continue with pending tasks from todo list
-3. Apply git checkpointing practices going forward 
+3. Apply git checkpointing practices going forward
+
+### 2025-06-11 19:15 PST - Commit: f745fd3
+- Created HANDOFF.md as master entry point for new agents
+- Enhanced AGENT_GUIDELINES.md with mandatory dev log updates after commits
+- Established single "read HANDOFF.md" instruction for agent onboarding
+- Agents now required to update dev_log.md with commit hash after each commit 

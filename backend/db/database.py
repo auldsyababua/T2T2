@@ -8,11 +8,23 @@ import time
 
 load_dotenv()
 
+
 logger = setup_logger(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(
+    DATABASE_URL, 
+    echo=True,
+    pool_pre_ping=True,  # Test connections before using
+    pool_size=5,
+    max_overflow=10,
+    connect_args={
+        "server_settings": {"jit": "off"},
+        "command_timeout": 60,
+        "timeout": 60
+    }
+)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 Base = declarative_base()
@@ -45,12 +57,18 @@ async def init_db():
             
             # Enable RLS on user_messages table
             logger.info("Enabling row-level security...")
-            await conn.execute(text("""
-                ALTER TABLE user_messages ENABLE ROW LEVEL SECURITY;
-                
-                CREATE POLICY IF NOT EXISTS per_user ON user_messages
-                USING (user_id = current_setting('app.user_id')::bigint);
+            await conn.execute(text("ALTER TABLE user_messages ENABLE ROW LEVEL SECURITY;"))
+            
+            # Check if policy exists before creating
+            result = await conn.execute(text("""
+                SELECT 1 FROM pg_policies 
+                WHERE tablename = 'user_messages' AND policyname = 'per_user'
             """))
+            if result.scalar() is None:
+                await conn.execute(text("""
+                    CREATE POLICY per_user ON user_messages
+                    USING (user_id = current_setting('app.user_id')::bigint);
+                """))
             
         total_time = (time.time() - start_time) * 1000
         logger.info(f"Database initialized successfully in {total_time:.2f}ms")

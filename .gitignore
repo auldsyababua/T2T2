@@ -52,6 +52,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Dev log archives (we want to keep these)
+!archive/
+!archive/dev_log_archive_*.md
+
 # Testing
 coverage/
 .nyc_output/

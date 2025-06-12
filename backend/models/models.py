@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Text, DateTime, ForeignKey, Float, Integer, JSON, Boolean
+from sqlalchemy import Column, BigInteger, String, Text, DateTime, ForeignKey, Float, Integer, JSON, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from pgvector.sqlalchemy import Vector
@@ -60,7 +60,7 @@ class Message(Base):
     
     # Unique constraint
     __table_args__ = (
-        {"postgresql_constraint": "unique_chat_msg", "unique": ["chat_id", "msg_id"]},
+        UniqueConstraint('chat_id', 'msg_id', name='unique_chat_msg'),
     )
 
 
@@ -90,7 +90,7 @@ class MessageEmbedding(Base):
     
     # Unique constraint
     __table_args__ = (
-        {"postgresql_constraint": "unique_message_chunk", "unique": ["message_id", "chunk_index"]},
+        UniqueConstraint('message_id', 'chunk_index', name='unique_message_chunk'),
     )
 
 
