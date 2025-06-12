@@ -101,3 +101,8 @@ ENV/
 *.backup
 *.old
 .history/
+
+# MCP generated runtime files
+.scratch/
+logs/
+modelcontextprotocol-mcp-*.tgz

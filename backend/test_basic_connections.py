@@ -25,13 +25,11 @@ except:
     print("❌ asyncpg not installed")
 
 try:
-
     print("✅ upstash_redis imported")
 except:
     print("❌ upstash_redis not installed")
 
 try:
-
     print("✅ boto3 imported")
 except:
     print("❌ boto3 not installed")
