@@ -39,8 +39,12 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    user_messages = relationship("UserMessage", back_populates="user", cascade="all, delete-orphan")
-    timelines = relationship("Timeline", back_populates="user", cascade="all, delete-orphan")
+    user_messages = relationship(
+        "UserMessage", back_populates="user", cascade="all, delete-orphan"
+    )
+    timelines = relationship(
+        "Timeline", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Chat(Base):
@@ -73,9 +77,15 @@ class Message(Base):
 
     # Relationships
     chat = relationship("Chat", back_populates="messages")
-    embeddings = relationship("MessageEmbedding", back_populates="message", cascade="all, delete-orphan")
-    user_messages = relationship("UserMessage", back_populates="message", cascade="all, delete-orphan")
-    images = relationship("MessageImage", back_populates="message", cascade="all, delete-orphan")
+    embeddings = relationship(
+        "MessageEmbedding", back_populates="message", cascade="all, delete-orphan"
+    )
+    user_messages = relationship(
+        "UserMessage", back_populates="message", cascade="all, delete-orphan"
+    )
+    images = relationship(
+        "MessageImage", back_populates="message", cascade="all, delete-orphan"
+    )
 
     # Unique constraint
     __table_args__ = (UniqueConstraint("chat_id", "msg_id", name="unique_chat_msg"),)
