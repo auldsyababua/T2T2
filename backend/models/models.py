@@ -23,7 +23,8 @@ if not DATABASE_URL.startswith("sqlite"):
     from pgvector.sqlalchemy import Vector
 else:
     # For SQLite, use JSON column instead of Vector
-    Vector = lambda dim: JSON
+    def Vector(dim):
+        return JSON
 
 
 class User(Base):
