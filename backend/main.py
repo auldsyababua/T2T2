@@ -5,6 +5,7 @@ import uvicorn
 from dotenv import load_dotenv
 import time
 from utils.logging import setup_logger, log_api_request, log_api_response
+from api.middleware import RateLimitMiddleware
 
 from api.routes import auth, telegram, timeline, query
 from db.database import init_db
@@ -44,6 +45,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global rate-limit: 100 req / minute per client IP
+app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
 
 # Add request/response logging middleware
 @app.middleware("http")

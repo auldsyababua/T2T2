@@ -208,4 +208,38 @@ For each new session, please leave a time and date as well as notes from that se
 ### Next Steps:
 1. Test dev log rotation script
 2. Continue with pending todos from todo list
-3. All agents must follow new documentation protocol 
+3. All agents must follow new documentation protocol
+
+### 2025-06-11 19:45 PST - Commit: 17e6b2c
+- Created compressed versions of all documentation
+- Achieved 67% total character reduction (14,426→4,726 chars)
+- Used symbols, shorthand, visual hierarchy, and content pruning
+- Agents can now use HANDOFF_COMPACT.md to save context
+- Full versions retained for detailed reference 
+
+## 2025-06-12 09:00 PST - Added Rate Limiting & Cache Layer (Commit: <pending>)
+
+### What Was Done:
+1. **RateLimitMiddleware** (backend/api/middleware/rate_limit.py)
+   - Sliding-window IP rate limiting (100 req/60 sec default)
+   - Returns `429` with `Retry-After` and standard `X-RateLimit-*` headers
+   - Uses shared cache backend for counters
+2. **Cache Utility** (backend/utils/cache.py)
+   - Simple async cache wrapper
+   - Prefers Upstash Redis if credentials present, falls back to in-memory TTL store
+   - Singleton `cache` instance for easy import everywhere
+3. **Main App Integration** (backend/main.py)
+   - Enabled global rate-limit middleware
+4. **Package Initialisation** (backend/api/middleware/__init__.py)
+5. **Docs & Tests**
+   - Updated imports; ensured new files pass ruff/black
+
+### Why These Changes Increase Success:
+- **Security**: Prevents abuse and protects expensive AI endpoints.
+- **Performance**: Shared cache layer paves the way for response caching & embedding memoisation.
+- **Scalability**: Upstash Redis allows horizontal scaling; in-memory fallback keeps local dev simple.
+
+### Next Steps:
+1. Expose configuration via ENV variables (limits, window).
+2. Write pytest coverage for rate limit edge cases.
+3. Replace in-memory fallback with local Redis during dev to mimic prod environment. 
