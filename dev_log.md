@@ -261,3 +261,37 @@ For each new session, please leave a time and date as well as notes from that se
 1. Extend media handling to documents & videos.
 2. Build embedding-level cache for text & images.
 3. Add integration tests for end-to-end media flow. 
+
+## 2025-06-12 15:45 PST - MCP Migration & CI Pipeline Stabilisation
+
+### What Was Done:
+1. **Adopted Model-Context-Protocol Toolkit**
+   - Installed local tarball `modelcontextprotocol-mcp-0.1.0.tgz` as dev-dependency.
+   - Ran `mcp init` → generated `mcp.config.js`, `.scratch/`, `logs/`, and helper docs.
+   - Removed obsolete `scripts/todoRead.js`, `scripts/todoWrite.js`, and all `*_COMPACT.md`/`COMPRESSION_STATS.md` files.
+   - Updated `HANDOFF.md` examples to `mcp todo-read`/`todo-write`.
+   - Added `.scratch/`, `logs/`, and tarball pattern to `.gitignore`.
+
+2. **Code Style Compliance**
+   - Ran `black .` to auto-format Python files; committed fixes (`Run black autoformat to satisfy CI linting`).
+
+3. **Node / Package Tweaks**
+   - Set `"type": "module"` in root `package.json` to silence Node warnings and align with ES-module imports.
+
+4. **GitHub Actions Fixes**
+   - Updated `.github/workflows/backend-ci.yml` Docker test step to pass `DATABASE_URL=sqlite+aiosqlite:///:memory:` preventing `role "root" does not exist` errors.
+
+### Why These Changes Increase Success:
+- **Tooling Alignment**: MCP unifies task management and context harvesting for agents.
+- **CI Stability**: Lint and DB fixes turn the CI pipeline green, catching regressions earlier.
+- **Clean Repo**: Removal of legacy scripts/docs and tighter `.gitignore` keep history tidy.
+- **Developer UX**: ES-module setting resolves import ambiguity.
+
+### Current State:
+- MCP fully integrated; `mcp todo-read` shows zero open todos.
+- CI passes lint, tests, and Docker image build.
+
+### Next Steps:
+1. Consider adding `black` auto-format during CI instead of local formatting.
+2. Extend CI to run `mcp checkEverything` for holistic health checks.
+3. Continue implementing pending service tests and media handling tasks. 
