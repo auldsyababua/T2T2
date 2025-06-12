@@ -294,4 +294,49 @@ For each new session, please leave a time and date as well as notes from that se
 ### Next Steps:
 1. Consider adding `black` auto-format during CI instead of local formatting.
 2. Extend CI to run `mcp checkEverything` for holistic health checks.
-3. Continue implementing pending service tests and media handling tasks. 
+3. Continue implementing pending service tests and media handling tasks.
+
+## 2025-06-12 18:45 PST - CI/CD Pipeline Fixed After Marathon Debugging Session
+
+### What Was Done:
+1. **Fixed Missing Dependencies**
+   - Added `PyJWT==2.8.0` to requirements.txt (auth.py imports)
+   - Added `qrcode[pil]==7.4.2` to requirements.txt (telegram_service.py imports)
+
+2. **Database Compatibility Fixes**
+   - Made `db/database.py` work with both PostgreSQL and SQLite:
+     - Conditional engine configuration based on DATABASE_URL prefix
+     - Skip pgvector extension and RLS policies for SQLite
+   - Fixed models autoincrement for SQLite:
+     - Used `BigInteger().with_variant(Integer, "sqlite")` for all primary keys
+     - Made Vector type conditional (JSON for SQLite, Vector for PostgreSQL)
+
+3. **Code Quality Fixes**
+   - Fixed ruff E731: Changed `Vector = lambda dim: JSON` to proper function
+   - Applied black formatting to all modified files
+
+4. **Test Fixes**
+   - Changed auth test from `/api/telegram/chats` to `/api/timeline/saved` to avoid Telethon errors
+   - Fixed assertion to match actual response format: `{"timelines": []}` not `[]`
+
+5. **Docker Build Fix**
+   - Added default values for `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` to prevent TypeError
+
+### Key Learnings:
+- **Progressive Error Discovery**: Each fix exposed the next issue - this is normal in CI/CD debugging
+- **Database Abstraction**: SQLite behaves differently than PostgreSQL in many ways:
+  - Autoincrement requires INTEGER not BIGINT
+  - No support for pgvector or RLS
+  - Different connection parameters
+- **Test Isolation**: Tests should avoid external dependencies (Telegram API) where possible
+- **Environment Variables**: Always provide sensible defaults for optional configs
+
+### What Enabled Success:
+- GitHub CLI integration for direct CI log access
+- Brave Search MCP for finding SQLAlchemy/SQLite specific solutions
+- Systematic approach: fix one issue, wait for CI, repeat
+
+### Next Steps:
+1. Add preventive measures (see recommendations below)
+2. Improve test coverage for edge cases
+3. Document CI/CD requirements clearly 

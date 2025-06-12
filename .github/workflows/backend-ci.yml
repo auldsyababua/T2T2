@@ -67,6 +67,16 @@ jobs:
         # Run ruff
         ruff check .
     
+    - name: Check imports
+      working-directory: ./backend
+      run: |
+        python scripts/check_imports.py || echo "::warning::Import check failed"
+    
+    - name: Check environment variables
+      working-directory: ./backend
+      run: |
+        python scripts/check_env_defaults.py || echo "::warning::Environment variable check failed"
+    
     - name: Run tests with coverage
       working-directory: ./backend
       env:

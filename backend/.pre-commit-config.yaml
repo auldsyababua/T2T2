@@ -1,0 +1,35 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.11
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: local
+    hooks:
+      - id: check-imports
+        name: Check Python imports
+        entry: python backend/scripts/check_imports.py
+        language: system
+        files: \.py$
+        pass_filenames: false
+
+      - id: check-env-defaults
+        name: Check environment variables
+        entry: python backend/scripts/check_env_defaults.py
+        language: system
+        files: \.py$
+        pass_filenames: false
+
+      - id: pytest-quick
+        name: Run quick tests
+        entry: bash -c 'cd backend && python -m pytest tests/test_database_compatibility.py -v'
+        language: system
+        files: \.(py|sql)$
+        pass_filenames: false
