@@ -17,8 +17,8 @@ from services.telegram_service import TelegramService
 
 router = APIRouter()
 
-API_ID = int(os.getenv("TELEGRAM_API_ID"))
-API_HASH = os.getenv("TELEGRAM_API_HASH")
+API_ID = int(os.getenv("TELEGRAM_API_ID", "0"))
+API_HASH = os.getenv("TELEGRAM_API_HASH", "")
 
 
 class QRLoginRequest(BaseModel):
