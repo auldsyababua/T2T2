@@ -113,15 +113,12 @@ class TestAuth:
             algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
         )
 
-        # Mock the session file
-        test_user.session_file = "mock_session.session"
-
-        # Make request with token
+        # Test a simpler protected endpoint that doesn't use Telegram
         headers = {"Authorization": f"Bearer {token}"}
-        response = await client.get("/api/telegram/chats", headers=headers)
+        response = await client.get("/api/timeline/", headers=headers)
 
-        # Should fail because we don't have a real Telegram session
-        # but it should pass authentication
-        assert response.status_code in [400, 500]  # Not 403
+        # Should succeed with authentication (200) or return empty list
+        assert response.status_code == 200
+        assert isinstance(response.json(), list)  # Should return a list
 
         logger.info("Valid token test passed")
