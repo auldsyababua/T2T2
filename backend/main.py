@@ -1,14 +1,15 @@
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
+import time
 from contextlib import asynccontextmanager
+
 import uvicorn
 from dotenv import load_dotenv
-import time
-from utils.logging import setup_logger, log_api_request, log_api_response
-from api.middleware import RateLimitMiddleware
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import auth, telegram, timeline, query
+from api.middleware import RateLimitMiddleware
+from api.routes import auth, query, telegram, timeline
 from db.database import init_db
+from utils.logging import log_api_request, log_api_response, setup_logger
 
 load_dotenv()
 
@@ -25,9 +26,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}", exc_info=True)
         raise
-    
+
     yield
-    
+
     logger.info("Shutting down T2T2 backend application")
 
 
@@ -49,27 +50,28 @@ app.add_middleware(
 # Global rate-limit: 100 req / minute per client IP
 app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
 
+
 # Add request/response logging middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start_time = time.time()
-    
+
     # Log request
     log_api_request(
         logger,
         request.method,
         request.url.path,
         client_host=request.client.host if request.client else None,
-        query_params=dict(request.query_params)
+        query_params=dict(request.query_params),
     )
-    
+
     # Process request
     response = await call_next(request)
-    
+
     # Log response
     duration_ms = (time.time() - start_time) * 1000
     log_api_response(logger, response.status_code, duration_ms)
-    
+
     return response
 
 

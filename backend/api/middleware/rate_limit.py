@@ -32,7 +32,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     # Starlette hook
     # ------------------------------------------------------------------
 
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         identifier = request.client.host if request.client else "anonymous"
         current_window = int(time.time() // self.window_seconds)
         key = f"rl:{identifier}:{current_window}"
@@ -52,7 +54,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 "X-RateLimit-Remaining": "0",
                 "X-RateLimit-Reset": str((current_window + 1) * self.window_seconds),
             }
-            return JSONResponse({"detail": "Rate limit exceeded"}, status_code=429, headers=headers)
+            return JSONResponse(
+                {"detail": "Rate limit exceeded"}, status_code=429, headers=headers
+            )
 
         # update the counter – no await for speed if cache set fails swallow error
         try:
@@ -64,5 +68,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         remaining = max(self.max_requests - (count + 1), 0)
         response.headers["X-RateLimit-Limit"] = str(self.max_requests)
         response.headers["X-RateLimit-Remaining"] = str(remaining)
-        response.headers["X-RateLimit-Reset"] = str((current_window + 1) * self.window_seconds)
-        return response 
+        response.headers["X-RateLimit-Reset"] = str(
+            (current_window + 1) * self.window_seconds
+        )
+        return response

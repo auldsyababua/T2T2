@@ -27,7 +27,7 @@ Before starting ANY work, read these documents in order:
 cat backend/.env
 
 # Check todo list immediately
-# Use TodoRead tool - DO NOT skip this step
+# Run `mcp todo-read` - DO NOT skip this step
 
 # Check recent git history
 git log --oneline -10
@@ -35,7 +35,7 @@ git log --oneline -10
 
 ## Before You Start Coding
 
-1. **Read the todo list** using the TodoRead tool
+1. **Read the todo list** using `mcp todo-read`
 2. **Check git status**: `git status`
 3. **Review recent commits**: `git log --oneline -10`
 4. **Identify where we left off** from dev_log.md
@@ -55,7 +55,7 @@ git log --oneline -10
    - Why it was done
    - Any issues encountered
 
-3. **Use the TodoWrite tool** to track your progress
+3. **Use `mcp todo-write`** to track your progress
 
 ## Common Issues & Solutions
 
@@ -93,4 +93,4 @@ If things go wrong:
 
 ---
 
-**Your first command should be to use the TodoRead tool to see current tasks.**
+**Your first command should be to run `mcp todo-read` to see current tasks.**

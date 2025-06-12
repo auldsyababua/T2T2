@@ -1,0 +1,24 @@
+{
+  "name": "t2t2",
+  "version": "1.0.0",
+  "description": "The design below integrates your latest answers — desktop-only QR login, OCR for images, and a future on-prem switch to Llama-3 8 B — and is phrased for maximum LLM-coder clarity (short bullets, numbered APIs, fixed JSON/SQL schemas, one concept per sentence).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/auldsyababua/T2T2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/auldsyababua/T2T2/issues"
+  },
+  "homepage": "https://github.com/auldsyababua/T2T2#readme",
+  "devDependencies": {
+    "@modelcontextprotocol/mcp": "file:../ai-agent-handoff/server/modelcontextprotocol-mcp-0.1.0.tgz"
+  }
+}

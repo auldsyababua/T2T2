@@ -14,6 +14,7 @@ except ImportError:  # pragma: no cover
 
 logger = setup_logger(__name__)
 
+
 class Cache:
     """Simple async cache wrapper using Upstash Redis with in-memory fallback.
 
@@ -38,12 +39,17 @@ class Cache:
                     # Test the connection lazily – first command will raise if bad creds
                     logger.debug("Cache: Using Upstash Redis backend")
                 except Exception as exc:  # pragma: no cover
-                    logger.warning("Cache: Failed to initialise Upstash Redis – falling back to memory. (%s)", exc)
+                    logger.warning(
+                        "Cache: Failed to initialise Upstash Redis – falling back to memory. (%s)",
+                        exc,
+                    )
                     self._redis = None
             else:
                 logger.debug("Cache: Redis credentials not set – using in-memory store")
         else:
-            logger.debug("Cache: upstash-redis package not installed – using in-memory store")
+            logger.debug(
+                "Cache: upstash-redis package not installed – using in-memory store"
+            )
 
     # ---------------------------------------------------------------------
     # Public helpers
@@ -92,4 +98,4 @@ class Cache:
 
 
 # Singleton instance – importable from anywhere
-cache = Cache() 
+cache = Cache()
