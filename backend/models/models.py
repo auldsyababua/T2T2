@@ -30,7 +30,11 @@ else:
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     tg_user_id = Column(BigInteger, unique=True, nullable=False, index=True)
     username = Column(String(255))
     first_name = Column(String(255))
@@ -51,7 +55,11 @@ class User(Base):
 class Chat(Base):
     __tablename__ = "chats"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     chat_id = Column(BigInteger, unique=True, nullable=False, index=True)
     title = Column(String(255))
     type = Column(String(50))  # private, group, channel
@@ -64,7 +72,11 @@ class Chat(Base):
 class Message(Base):
     __tablename__ = "messages"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     chat_id = Column(BigInteger, ForeignKey("chats.id"), nullable=False, index=True)
     msg_id = Column(BigInteger, nullable=False)  # Telegram message ID
     sender_id = Column(BigInteger)
@@ -106,7 +118,11 @@ class UserMessage(Base):
 class MessageEmbedding(Base):
     __tablename__ = "message_embeddings"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     message_id = Column(
         BigInteger, ForeignKey("messages.id"), nullable=False, index=True
     )
@@ -127,7 +143,11 @@ class MessageEmbedding(Base):
 class MessageImage(Base):
     __tablename__ = "message_images"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     message_id = Column(
         BigInteger, ForeignKey("messages.id"), nullable=False, index=True
     )
@@ -146,7 +166,11 @@ class MessageImage(Base):
 class Timeline(Base):
     __tablename__ = "timelines"
 
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False, index=True)
     query = Column(Text, nullable=False)
     result = Column(JSON, nullable=False)  # Stored timeline JSON
