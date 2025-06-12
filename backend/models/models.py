@@ -1,6 +1,6 @@
+import os
 from datetime import datetime
 
-from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
     BigInteger,
@@ -17,11 +17,19 @@ from sqlalchemy.orm import relationship
 
 from db.database import Base
 
+# Only import Vector for PostgreSQL
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+if not DATABASE_URL.startswith("sqlite"):
+    from pgvector.sqlalchemy import Vector
+else:
+    # For SQLite, use JSON column instead of Vector
+    Vector = lambda dim: JSON
+
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     tg_user_id = Column(BigInteger, unique=True, nullable=False, index=True)
     username = Column(String(255))
     first_name = Column(String(255))
@@ -31,14 +39,14 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    user_messages = relationship("UserMessage", back_populates="user")
-    timelines = relationship("Timeline", back_populates="user")
+    user_messages = relationship("UserMessage", back_populates="user", cascade="all, delete-orphan")
+    timelines = relationship("Timeline", back_populates="user", cascade="all, delete-orphan")
 
 
 class Chat(Base):
     __tablename__ = "chats"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     chat_id = Column(BigInteger, unique=True, nullable=False, index=True)
     title = Column(String(255))
     type = Column(String(50))  # private, group, channel
@@ -51,7 +59,7 @@ class Chat(Base):
 class Message(Base):
     __tablename__ = "messages"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     chat_id = Column(BigInteger, ForeignKey("chats.id"), nullable=False, index=True)
     msg_id = Column(BigInteger, nullable=False)  # Telegram message ID
     sender_id = Column(BigInteger)
@@ -65,9 +73,9 @@ class Message(Base):
 
     # Relationships
     chat = relationship("Chat", back_populates="messages")
-    embeddings = relationship("MessageEmbedding", back_populates="message")
-    user_messages = relationship("UserMessage", back_populates="message")
-    images = relationship("MessageImage", back_populates="message")
+    embeddings = relationship("MessageEmbedding", back_populates="message", cascade="all, delete-orphan")
+    user_messages = relationship("UserMessage", back_populates="message", cascade="all, delete-orphan")
+    images = relationship("MessageImage", back_populates="message", cascade="all, delete-orphan")
 
     # Unique constraint
     __table_args__ = (UniqueConstraint("chat_id", "msg_id", name="unique_chat_msg"),)
@@ -87,7 +95,7 @@ class UserMessage(Base):
 class MessageEmbedding(Base):
     __tablename__ = "message_embeddings"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     message_id = Column(
         BigInteger, ForeignKey("messages.id"), nullable=False, index=True
     )
@@ -108,7 +116,7 @@ class MessageEmbedding(Base):
 class MessageImage(Base):
     __tablename__ = "message_images"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     message_id = Column(
         BigInteger, ForeignKey("messages.id"), nullable=False, index=True
     )
@@ -127,7 +135,7 @@ class MessageImage(Base):
 class Timeline(Base):
     __tablename__ = "timelines"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False, index=True)
     query = Column(Text, nullable=False)
     result = Column(JSON, nullable=False)  # Stored timeline JSON
