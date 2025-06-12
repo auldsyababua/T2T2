@@ -117,8 +117,10 @@ class TestAuth:
         headers = {"Authorization": f"Bearer {token}"}
         response = await client.get("/api/timeline/saved", headers=headers)
 
-        # Should succeed with authentication (200) or return empty list
+        # Should succeed with authentication (200) and return timelines object
         assert response.status_code == 200
-        assert isinstance(response.json(), list)  # Should return a list
+        data = response.json()
+        assert "timelines" in data
+        assert isinstance(data["timelines"], list)  # Should return a list of timelines
 
         logger.info("Valid token test passed")
