@@ -115,7 +115,7 @@ class TestAuth:
 
         # Test a simpler protected endpoint that doesn't use Telegram
         headers = {"Authorization": f"Bearer {token}"}
-        response = await client.get("/api/timeline/", headers=headers)
+        response = await client.get("/api/timeline/saved", headers=headers)
 
         # Should succeed with authentication (200) or return empty list
         assert response.status_code == 200
