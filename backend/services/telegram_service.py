@@ -1,15 +1,32 @@
-import logging
-from typing import List, Dict, Optional
-from telethon import TelegramClient
-from telethon.tl.types import Message, Chat, User
-from telethon.errors import SessionPasswordNeededError
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-import qrcode
-import io
-import base64
+from __future__ import annotations
 
-from models.models import User, Chat as DBChat, Message as DBMessage, UserMessage, MessageImage
+import base64
+import io
+from io import BytesIO
+from typing import Dict, List, Optional
+
+import qrcode
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from telethon import TelegramClient
+from telethon.tl.types import Chat as TgChat
+from telethon.tl.types import Message as TgMessage
+from telethon.tl.types import User as TgUser
+
+from models.models import (
+    Chat as DBChat,
+)
+from models.models import (
+    Message as DBMessage,
+)
+from models.models import (
+    MessageImage,
+    UserMessage,
+)
+from models.models import (
+    User as DBUser,
+)
+from services.image_service import ImageService
 from utils.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -64,7 +81,7 @@ class TelegramService:
             chats = []
             for dialog in dialogs:
                 entity = dialog.entity
-                if isinstance(entity, (Chat, User)):
+                if isinstance(entity, (TgChat, TgUser)):
                     chat_data = {
                         "id": entity.id,
                         "title": getattr(entity, "title", None) or f"{entity.first_name} {entity.last_name or ''}",
@@ -77,13 +94,21 @@ class TelegramService:
             logger.error(f"Error getting user chats: {str(e)}")
             raise
 
-    async def index_chat(self, user_id: int, chat_id: int, db: AsyncSession) -> None:
+    async def index_chat(
+        self,
+        user_id: int,
+        chat_id: int,
+        db: AsyncSession,
+        *,
+        image_service: Optional[ImageService] = None,
+    ) -> None:
         """Index messages from a chat for the user."""
         try:
             # Get user's session file
-            user = await db.execute(select(User).where(User.id == user_id))
-            user = user.scalar_one()
-            client = await self._get_client(user.session_file)
+            user_result = await db.execute(select(DBUser).where(DBUser.id == user_id))
+            db_user = user_result.scalar_one()
+            # Ensure user has session_file
+            client = await self._get_client(db_user.session_file)
             
             # Get or create chat in database
             db_chat = await db.execute(select(DBChat).where(DBChat.chat_id == chat_id))
@@ -103,7 +128,7 @@ class TelegramService:
             messages = await client.get_messages(chat_id, limit=None)
             
             for msg in messages:
-                if not isinstance(msg, Message):
+                if not isinstance(msg, TgMessage):
                     continue
                 
                 # Check if message already exists
@@ -138,10 +163,38 @@ class TelegramService:
                 )
                 db.add(user_message)
                 
-                # Handle media if present
-                if msg.media:
-                    # TODO: Implement media handling (images, documents, etc.)
-                    pass
+                # ------------------------------------------------------
+                # 🖼  Media handling (photos/documents → S3, embeddings)
+                # ------------------------------------------------------
+                if msg.media and image_service is not None and msg.photo:
+                    try:
+                        raw = BytesIO()
+                        await msg.download_media(file=raw)
+                        image_bytes = raw.getvalue()
+
+                        # Skip empty downloads (rare but happens on service messages)
+                        if not image_bytes:
+                            raise ValueError("Downloaded media is empty")
+
+                        processed = await image_service.process_image(image_bytes)
+
+                        # Check for dupes by hash
+                        existing_img = await db.execute(
+                            select(MessageImage).where(MessageImage.file_hash == processed["file_hash"])
+                        )
+                        if existing_img.scalar_one_or_none() is None:
+                            db_image = MessageImage(
+                                message_id=db_message.id,
+                                file_hash=processed["file_hash"],
+                                s3_url=processed["s3_url"],
+                                ocr_text=processed["ocr_text"],
+                                img_embedding=processed["img_embedding"],
+                                width=processed["width"],
+                                height=processed["height"],
+                            )
+                            db.add(db_image)
+                    except Exception as media_exc:
+                        logger.warning("Failed to process media for msg %s: %s", msg.id, media_exc)
                 
                 await db.commit()
                 

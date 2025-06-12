@@ -1,16 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from pydantic import BaseModel
-from typing import List, Optional
-import os
-import asyncio
-from telethon import TelegramClient
-from telethon.tl.functions.auth import ExportLoginTokenRequest, AcceptLoginTokenRequest
+from __future__ import annotations
 
-from db.database import get_db
-from models.models import User, Chat
+import os
+from typing import List, Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from telethon import TelegramClient
+from telethon.tl.functions.auth import ExportLoginTokenRequest
+
 from api.routes.auth import get_current_user
+from db.database import get_db
+from models.models import User
+from services.image_service import ImageService
 from services.telegram_service import TelegramService
 
 router = APIRouter()
@@ -87,8 +89,8 @@ async def get_user_chats(
     if not current_user.session_file:
         raise HTTPException(status_code=400, detail="User not authenticated with Telegram")
     
-    telegram_service = TelegramService(current_user.session_file)
-    chats = await telegram_service.get_user_chats()
+    telegram_service = TelegramService(API_ID, API_HASH)
+    chats = await telegram_service.get_user_chats(current_user.session_file)
     
     return {"chats": chats}
 
@@ -144,8 +146,22 @@ async def index_chats_task(
     db: AsyncSession
 ):
     """Background task to index selected chats"""
-    telegram_service = TelegramService(session_file)
-    
+
+    telegram_service = TelegramService(API_ID, API_HASH)
+
+    # Initialise ImageService once per task
+    s3_bucket = os.getenv("AWS_BUCKET_NAME")
+    aws_key = os.getenv("AWS_ACCESS_KEY_ID")
+    aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+    image_service: Optional[ImageService] = None
+    if s3_bucket and aws_key and aws_secret:
+        image_service = ImageService(s3_bucket, aws_key, aws_secret)
+
     for chat_id in chat_ids:
-        # Fetch and process messages
-        await telegram_service.index_chat(user_id, chat_id, db)
+        await telegram_service.index_chat(
+            user_id,
+            chat_id,
+            db,
+            image_service=image_service,
+        )

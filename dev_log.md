@@ -243,3 +243,21 @@ For each new session, please leave a time and date as well as notes from that se
 1. Expose configuration via ENV variables (limits, window).
 2. Write pytest coverage for rate limit edge cases.
 3. Replace in-memory fallback with local Redis during dev to mimic prod environment. 
+
+## 2025-06-12 09:30 PST - Media Handling Complete (Commit: <pending>)
+
+### What Was Done:
+1. **TelegramService**
+   - Implemented photo media download → ImageService processing → DB persistence.
+   - Added optional `image_service` param to `index_chat`.
+   - Aliased Telethon types to avoid model name collisions.
+2. **Image Pipeline Integration**
+   - Route `index_chats_task` now instantiates `ImageService` with S3 creds and passes to TelegramService.
+3. **API Route Fixes**
+   - Corrected `TelegramService` initialisation in `/chats` and background task.
+   - Imports cleaned and sorted (ruff/black).
+
+### Next Steps:
+1. Extend media handling to documents & videos.
+2. Build embedding-level cache for text & images.
+3. Add integration tests for end-to-end media flow. 
