@@ -129,6 +129,7 @@ class MessageEmbedding(Base):
     )
     chunk_index = Column(Integer, nullable=False)
     chunk_text = Column(Text, nullable=False)
+    chunk_metadata = Column(JSON)  # Store timestamp, chat info, reply context, etc.
     embedding = Column(Vector(3072))  # OpenAI text-embedding-3-large dimension
     created_at = Column(DateTime, default=datetime.utcnow)
 

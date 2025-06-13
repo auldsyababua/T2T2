@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import os
+import sys
 from datetime import datetime, timedelta
 
 import jwt
@@ -9,6 +10,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Add path for config import
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from config.authorized_users import is_user_authorized
 
 from db.database import get_db
 from models.models import User
@@ -67,6 +72,20 @@ async def telegram_auth(
     # Check auth date (not older than 1 hour)
     if datetime.utcnow().timestamp() - auth_data.auth_date > 3600:
         raise HTTPException(status_code=401, detail="Authentication data expired")
+    
+    # Check whitelist authorization
+    if not auth_data.username:
+        raise HTTPException(
+            status_code=403, 
+            detail="You need a Telegram username to use this service"
+        )
+    
+    if not is_user_authorized(auth_data.username):
+        logger.warning(f"Unauthorized access attempt by @{auth_data.username} (ID: {auth_data.id})")
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to use this service. Contact admin for access."
+        )
 
     # Get or create user
     result = await db.execute(select(User).where(User.tg_user_id == auth_data.id))

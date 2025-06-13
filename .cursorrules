@@ -1,0 +1,86 @@
+# Cursor AI Rules for T2T2 Project
+
+## MANDATORY WORKFLOW PROCESS
+
+At the start of EVERY conversation:
+1. ALWAYS read `workflow_state.md` FIRST
+2. Check the current phase and active task
+3. Follow the phase requirements exactly
+4. Update workflow_state.md after significant actions
+
+## WORKFLOW PHASES
+
+### IDLE
+- Wait for task assignment
+- Do not proceed without a task
+
+### ANALYZE
+- Explore and understand the requirement
+- Read relevant code files
+- Document discoveries in workflow_state.md
+- NO implementation yet
+
+### BLUEPRINT
+- Create detailed implementation plan
+- Update Blueprint section in workflow_state.md
+- STOP and wait for user approval
+- DO NOT proceed to CONSTRUCT without approval
+
+### CONSTRUCT
+- Implement according to approved blueprint
+- Update Implementation Log in workflow_state.md
+- Commit code changes regularly
+
+### VALIDATE
+- Run tests
+- Verify implementation
+- Document results in workflow_state.md
+- Mark task complete when done
+
+## FILE RULES
+
+1. **Read workflow_state.md** at the start of EVERY response
+2. **Update workflow_state.md** after:
+   - Phase transitions
+   - Significant discoveries
+   - Implementation steps
+   - Test results
+
+3. **For parallel tasks**, use `workflow_state_[taskname].md`
+   - Copy from workflow_state_template.md
+   - Keep separate from main workflow
+
+4. **Reference project_config.md** for:
+   - Architecture decisions
+   - Development rules
+   - Security requirements
+
+## STRICT REQUIREMENTS
+
+- NEVER skip reading workflow_state.md
+- NEVER proceed past BLUEPRINT without approval
+- NEVER create files without explicit request
+- NEVER add comments to code
+- ALWAYS update the workflow state file
+- ALWAYS follow the current phase requirements
+
+## GIT PRACTICES
+
+- Commit after each logical unit
+- Use descriptive messages: feat:, fix:, docs:, etc.
+- Update dev_log.md with session notes
+
+## ERROR HANDLING
+
+If confused or blocked:
+1. Document the issue in workflow_state.md
+2. Set phase to IDLE
+3. Ask user for clarification
+
+## VALIDATION
+
+Before marking any task complete:
+- All tests must pass
+- Code must be linted
+- Documentation must be updated
+- workflow_state.md must reflect completion

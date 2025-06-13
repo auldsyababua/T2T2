@@ -78,14 +78,7 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
   return response.json();
 }
 
-// Authentication
-export async function startQRLogin() {
-  return apiRequest('/api/telegram/qr-login', { method: 'POST' });
-}
-
-export async function checkQRStatus(phone_code_hash: string) {
-  return apiRequest(`/api/telegram/qr-status/${phone_code_hash}`);
-}
+// Authentication handled through Telegram bot - QR login removed
 
 // Get user's chats
 export async function getUserChats(): Promise<Chat[]> {

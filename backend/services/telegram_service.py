@@ -1,12 +1,8 @@
 from __future__ import annotations
 
-import base64
-import io
 import os
-from io import BytesIO
 from typing import Dict, List, Optional
 
-import qrcode
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from telethon import TelegramClient
@@ -49,34 +45,7 @@ class TelegramService:
             self._clients[session_file] = client
         return self._clients[session_file]
 
-    async def generate_qr_login(self, user_id: int) -> dict:
-        """Generate QR code for Telegram login."""
-        try:
-            # Ensure sessions directory exists
-            os.makedirs("sessions", exist_ok=True)
-            session_file = f"sessions/user_{user_id}"
-            client = TelegramClient(session_file, self.api_id, self.api_hash)
-            await client.connect()
-
-            if await client.is_user_authorized():
-                return {"status": "already_authorized"}
-
-            qr = await client.qr_login()
-            qr_image = qrcode.make(qr.url)
-
-            # Convert QR code to base64
-            buffer = io.BytesIO()
-            qr_image.save(buffer, format="PNG")
-            qr_base64 = base64.b64encode(buffer.getvalue()).decode()
-
-            return {
-                "status": "qr_generated",
-                "qr_code": qr_base64,
-                "session_file": session_file,
-            }
-        except Exception as e:
-            logger.error(f"Error generating QR login: {str(e)}")
-            raise
+    # QR login removed - using direct Telegram authentication through bot
 
     async def get_user_chats(self, session_file: str) -> List[dict]:
         """Get all chats for the authenticated user."""
