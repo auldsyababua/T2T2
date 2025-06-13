@@ -1,0 +1,92 @@
+import time
+from contextlib import asynccontextmanager
+
+import uvicorn
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+
+from api.middleware import RateLimitMiddleware
+from api.routes import auth, query, telegram, timeline
+from db.database import init_db
+from utils.logging import log_api_request, log_api_response, setup_logger
+
+load_dotenv()
+
+# Set up main logger
+logger = setup_logger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting T2T2 backend application")
+    try:
+        await init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}", exc_info=True)
+        raise
+
+    yield
+
+    logger.info("Shutting down T2T2 backend application")
+
+
+app = FastAPI(
+    title="Talk2Telegram 2",
+    description="RAG over Telegram chat history",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Global rate-limit: 100 req / minute per client IP
+app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
+
+
+# Add request/response logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+
+    # Log request
+    log_api_request(
+        logger,
+        request.method,
+        request.url.path,
+        client_host=request.client.host if request.client else None,
+        query_params=dict(request.query_params),
+    )
+
+    # Process request
+    response = await call_next(request)
+
+    # Log response
+    duration_ms = (time.time() - start_time) * 1000
+    log_api_response(logger, response.status_code, duration_ms)
+
+    return response
+
+
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(telegram.router, prefix="/api/telegram", tags=["telegram"])
+app.include_router(timeline.router, prefix="/api/timeline", tags=["timeline"])
+app.include_router(query.router, prefix="/api/query", tags=["query"])
+
+
+@app.get("/health")
+async def health_check():
+    logger.debug("Health check requested")
+    return {"status": "healthy"}
+
+
+if __name__ == "__main__":
+    logger.info("Starting Uvicorn server on http://0.0.0.0:8000")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

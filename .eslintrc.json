@@ -1,0 +1,45 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-console-log": "error",
+    "no-hardcoded-secrets": "error",
+    "max-file-lines": [
+      "error",
+      300
+    ],
+    "max-function-length": [
+      "error",
+      50
+    ],
+    "require-comments": "warn",
+    "no-duplicate-imports": "error",
+    "no-unused-vars": "error",
+    "consistent-naming": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "prefer-const": "warn",
+    "no-var": "error"
+  },
+  "overrides": [
+    {
+      "files": [
+        "*.js",
+        "*.ts"
+      ],
+      "rules": {
+        "no-hardcoded-secrets": {}
+      }
+    }
+  ]
+}

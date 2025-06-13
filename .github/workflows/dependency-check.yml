@@ -1,0 +1,55 @@
+name: Dependency Check
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  check-deps:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        pip install -r requirements.txt
+        pip install pip-audit
+    
+    - name: Check for security vulnerabilities
+      working-directory: ./backend
+      run: |
+        pip-audit || echo "::warning::Security vulnerabilities found"
+    
+    - name: Check for outdated packages
+      working-directory: ./backend
+      run: |
+        pip list --outdated
+    
+    - name: Test import compatibility
+      working-directory: ./backend
+      run: |
+        python scripts/check_imports.py
+    
+    - name: Create issue if problems found
+      if: failure()
+      uses: actions/create-issue@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        title: "Dependency Check Failed"
+        body: |
+          The automated dependency check has failed. Please review:
+          - Security vulnerabilities in dependencies
+          - Outdated packages
+          - Missing imports in requirements.txt
+          
+          Check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.

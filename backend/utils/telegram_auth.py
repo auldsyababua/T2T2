@@ -1,0 +1,103 @@
+"""
+Telegram Mini App authentication utilities
+"""
+import hashlib
+import hmac
+import json
+import time
+from typing import Dict, Optional
+from urllib.parse import unquote
+
+def verify_telegram_webapp_data(init_data: str, bot_token: str, max_age: int = 86400) -> Optional[Dict]:
+    """
+    Verify Telegram Mini App init data
+    
+    Args:
+        init_data: The initData string from Telegram.WebApp
+        bot_token: Your bot's token
+        max_age: Maximum age of the data in seconds (default: 24 hours)
+    
+    Returns:
+        Parsed user data if valid, None otherwise
+    """
+    try:
+        # Parse the init data
+        parsed_data = {}
+        data_check_string_parts = []
+        
+        for part in init_data.split('&'):
+            if '=' not in part:
+                continue
+                
+            key, value = part.split('=', 1)
+            value = unquote(value)
+            
+            if key == 'hash':
+                received_hash = value
+            else:
+                parsed_data[key] = value
+                data_check_string_parts.append(f"{key}={value}")
+        
+        if 'hash' not in locals():
+            return None
+        
+        # Sort and create data check string
+        data_check_string_parts.sort()
+        data_check_string = '\n'.join(data_check_string_parts)
+        
+        # Create secret key
+        secret_key = hmac.new(
+            b"WebAppData",
+            bot_token.encode(),
+            hashlib.sha256
+        ).digest()
+        
+        # Calculate hash
+        calculated_hash = hmac.new(
+            secret_key,
+            data_check_string.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        # Verify hash
+        if calculated_hash != received_hash:
+            return None
+        
+        # Check auth_date (prevent replay attacks)
+        if 'auth_date' in parsed_data:
+            auth_date = int(parsed_data['auth_date'])
+            if time.time() - auth_date > max_age:
+                return None
+        
+        # Parse user data if present
+        if 'user' in parsed_data:
+            parsed_data['user'] = json.loads(parsed_data['user'])
+        
+        return parsed_data
+        
+    except Exception:
+        return None
+
+def extract_user_from_init_data(init_data_dict: Dict) -> Optional[Dict]:
+    """
+    Extract user information from verified init data
+    
+    Args:
+        init_data_dict: Verified init data dictionary
+    
+    Returns:
+        User information dictionary
+    """
+    if not init_data_dict or 'user' not in init_data_dict:
+        return None
+    
+    user = init_data_dict['user']
+    
+    return {
+        'telegram_id': str(user.get('id', '')),
+        'username': user.get('username', ''),
+        'first_name': user.get('first_name', ''),
+        'last_name': user.get('last_name', ''),
+        'language_code': user.get('language_code', 'en'),
+        'is_premium': user.get('is_premium', False),
+    }

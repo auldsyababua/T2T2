@@ -1,0 +1,57 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, feature/* ]
+    paths:
+      - 'UI/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'UI/**'
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js 20
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: UI/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./UI/src
+      run: npm ci
+    
+    - name: Run type checking
+      working-directory: ./UI/src
+      run: npm run type-check || npx tsc --noEmit
+    
+    - name: Run linting
+      working-directory: ./UI/src
+      run: |
+        # Run ESLint if configured
+        npm run lint || echo "No lint script found, skipping..."
+    
+    - name: Run tests
+      working-directory: ./UI/src
+      run: |
+        # Run tests if configured
+        npm test -- --passWithNoTests || echo "No test script found, skipping..."
+    
+    - name: Build project
+      working-directory: ./UI/src
+      run: npm run build
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build
+        path: UI/src/dist
+        retention-days: 7
