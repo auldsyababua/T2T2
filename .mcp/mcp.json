@@ -1,0 +1,18 @@
+{
+  "servers": [
+    {
+      "name": "filesystem",
+      "description": "Read-only access to T2T2 project files",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/colinaulds/Desktop/projects/T2T2"],
+      "env": {}
+    },
+    {
+      "name": "http-tool",
+      "description": "HTTP client for testing T2T2 API endpoints",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-http"],
+      "env": {}
+    }
+  ]
+}
