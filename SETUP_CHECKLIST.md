@@ -30,7 +30,16 @@
 - [x] Update `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in backend/.env
 
 ## After Setup:
-1. Run `cd backend && pip install -r requirements.txt`
-2. Test database connection: `python -c "from db.database import init_db; import asyncio; asyncio.run(init_db())"`
-3. Start backend: `python main.py`
-- [x] Test new task
+1. Install system dependencies (see [backend/DEPENDENCIES.md](backend/DEPENDENCIES.md#system-dependencies))
+2. Run `cd backend && pip install -r requirements.txt`
+3. Test database connection: `python -c "from db.database import init_db; import asyncio; asyncio.run(init_db())"`
+4. Run dependency checks:
+   - `python scripts/check_imports.py` - Verify all imports
+   - `python scripts/check_env_defaults.py` - Check env variables
+5. Start backend: `uvicorn main:app --reload`
+
+## Documentation:
+- **Backend Setup**: See [backend/README.md](backend/README.md)
+- **Dependencies**: See [backend/DEPENDENCIES.md](backend/DEPENDENCIES.md)
+- **Environment Variables**: See [ENVIRONMENT.md](ENVIRONMENT.md)
+- **Development Guide**: See [HANDOFF.md](HANDOFF.md)

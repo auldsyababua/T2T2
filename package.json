@@ -17,8 +17,5 @@
   "bugs": {
     "url": "https://github.com/auldsyababua/T2T2/issues"
   },
-  "homepage": "https://github.com/auldsyababua/T2T2#readme",
-  "devDependencies": {
-    "@modelcontextprotocol/mcp": "file:../ai-agent-handoff/server/modelcontextprotocol-mcp-0.1.0.tgz"
-  }
+  "homepage": "https://github.com/auldsyababua/T2T2#readme"
 }
