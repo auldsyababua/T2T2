@@ -189,6 +189,43 @@ logger.info("Operation started", extra={"user_id": user.id})
 - Check database connectivity
 - Verify external services
 
+## 🔒 Security
+
+### Prompt Injection Protection
+
+**For AI Response Generation (Future)**:
+
+The codebase includes comprehensive prompt injection protections in `utils/security.py`:
+
+1. **Query Sanitization**:
+   - Length limits (500 chars)
+   - Control character removal
+   - Unicode normalization
+
+2. **Injection Detection**:
+   - Common injection patterns
+   - Exfiltration attempts
+   - Suspicious character patterns
+
+3. **Safe Prompt Structure**:
+   - System message isolation
+   - Context limiting (20 messages max)
+   - Response length limits
+
+4. **Security Logging**:
+   - All injection attempts are logged
+   - Monitoring for abuse patterns
+
+**Example Usage**:
+```python
+from utils.security import sanitize_query, detect_injection_attempt
+
+query = sanitize_query(user_input)
+if detect_injection_attempt(query):
+    # Log and handle suspicious query
+    pass
+```
+
 ## 🆘 Getting Help
 
 1. **Check Logs**: Set `LOG_LEVEL=DEBUG`
@@ -197,6 +234,7 @@ logger.info("Operation started", extra={"user_id": user.id})
    python scripts/check_imports.py
    python scripts/check_env_defaults.py
    pytest tests/test_database_compatibility.py -v
+   pytest tests/test_security.py -v
    ```
 3. **Search Issues**: GitHub issues may have solutions
 4. **Documentation**: 
