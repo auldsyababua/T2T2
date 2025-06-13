@@ -2,6 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.routes.auth import get_current_user
@@ -42,8 +43,11 @@ async def query_messages(
 
     rag_service = RAGService(db)
 
-    # Set user context for RLS
-    await db.execute(f"SET app.user_id = {current_user.id}")
+    # Set user context for RLS (PostgreSQL only)
+    if not db.bind.url.drivername.startswith("sqlite"):
+        await db.execute(
+            text("SET app.user_id = :user_id"), {"user_id": current_user.id}
+        )
 
     try:
         result = await rag_service.query(
@@ -73,8 +77,11 @@ async def find_similar_messages(
 
     rag_service = RAGService(db)
 
-    # Set user context for RLS
-    await db.execute(f"SET app.user_id = {current_user.id}")
+    # Set user context for RLS (PostgreSQL only)
+    if not db.bind.url.drivername.startswith("sqlite"):
+        await db.execute(
+            text("SET app.user_id = :user_id"), {"user_id": current_user.id}
+        )
 
     try:
         similar_messages = await rag_service.find_similar(
