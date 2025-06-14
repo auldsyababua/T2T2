@@ -20,7 +20,12 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str, max_age: int = 8
     Returns:
         Parsed user data if valid, None otherwise
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
+        logger.info(f"[AUTH] Verifying init data length: {len(init_data)}")
+        logger.debug(f"[AUTH] Init data first 100 chars: {init_data[:100]}...")
         # Parse the init data
         parsed_data = {}
         data_check_string_parts = []
@@ -61,6 +66,9 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str, max_age: int = 8
         
         # Verify hash
         if calculated_hash != received_hash:
+            logger.warning(f"[AUTH] Hash mismatch - calculated: {calculated_hash[:20]}..., received: {received_hash[:20]}...")
+            logger.debug(f"[AUTH] Data check string: {data_check_string[:100]}...")
+            logger.debug(f"[AUTH] Bot token last 4 chars: ...{bot_token[-4:]}")
             return None
         
         # Check auth_date (prevent replay attacks)
