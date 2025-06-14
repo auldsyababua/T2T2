@@ -24,7 +24,7 @@ from backend.models.models import (
     User as DBUser,
 )
 from backend.services.embedding_service import EmbeddingService
-from backend.services.image_service import ImageService
+# from backend.services.image_service import ImageService  # Temporarily disabled
 from backend.utils.cache import cache
 from backend.utils.logging import setup_logger
 
@@ -80,7 +80,7 @@ class TelegramService:
         chat_id: int,
         db: AsyncSession,
         *,
-        image_service: Optional[ImageService] = None,
+        image_service: Optional[object] = None,  # ImageService disabled
     ) -> None:
         """Index messages from a chat for the user."""
         # Initialize progress tracking
