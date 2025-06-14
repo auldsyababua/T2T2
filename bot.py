@@ -36,7 +36,7 @@ async def check_authorization(update: Update) -> bool:
         )
         return False
     
-    if not is_user_authorized(username):
+    if not is_user_authorized(username=username, user_id=user.id):
         await update.message.reply_text(get_unauthorized_message())
         logger.warning(f"Unauthorized access attempt by @{username} (ID: {user.id})")
         return False

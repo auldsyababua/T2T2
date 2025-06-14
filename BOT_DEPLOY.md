@@ -2,7 +2,7 @@
 
 ## Deploy Bot as Railway Service
 
-### 1. Create New Service in Railway
+### 1. Create New Service in Railwaywh
 1. In your Railway project dashboard
 2. Click **"+ New"** → **"Empty Service"**
 3. Name it "telegram-bot"
