@@ -11,7 +11,7 @@ from backend.api.routes.auth import get_current_user
 from backend.db.database import get_db
 from backend.models.models import User
 from backend.services.embedding_service import EmbeddingService
-from backend.services.image_service import ImageService
+# from backend.services.image_service import ImageService  # Temporarily disabled
 from backend.services.telegram_service import TelegramService
 from backend.utils.cache import cache
 from backend.utils.logging import setup_logger

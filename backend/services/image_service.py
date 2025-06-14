@@ -3,7 +3,11 @@ import io
 from typing import List
 
 import boto3
-import pytesseract
+try:
+    import pytesseract
+    PYTESSERACT_AVAILABLE = True
+except ImportError:
+    PYTESSERACT_AVAILABLE = False
 import torch
 from open_clip import create_model_and_transforms
 from PIL import Image
