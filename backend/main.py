@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.middleware import RateLimitMiddleware
-from api.routes import auth, query, telegram, timeline
-from db.database import init_db
-from utils.logging import log_api_request, log_api_response, setup_logger
+from backend.api.middleware import RateLimitMiddleware
+from backend.api.routes import auth, query, telegram, timeline
+from backend.db.database import init_db
+from backend.utils.logging import log_api_request, log_api_response, setup_logger
 
 load_dotenv()
 
