@@ -60,8 +60,17 @@ export function getTelegramInitData(): string {
 // API client with auth headers
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const initData = getTelegramInitData();
+  const url = `${API_BASE_URL}${endpoint}`;
   
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  console.log('[API] Request:', {
+    url,
+    endpoint,
+    method: options.method || 'GET',
+    hasInitData: !!initData,
+    initDataLength: initData.length,
+  });
+  
+  const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -70,12 +79,21 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
     },
   });
 
+  console.log('[API] Response:', {
+    status: response.status,
+    ok: response.ok,
+    statusText: response.statusText,
+  });
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+    console.error('[API] Error:', error);
     throw new Error(error.detail || `HTTP ${response.status}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('[API] Success:', { endpoint, dataLength: Array.isArray(data) ? data.length : 'not-array' });
+  return data;
 }
 
 // Authentication handled through Telegram bot - QR login removed

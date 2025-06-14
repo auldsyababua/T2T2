@@ -126,24 +126,31 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db),
 ):
+    logger.info(f"[AUTH] Getting current user from token")
     token = credentials.credentials
 
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id = payload.get("user_id")
+        logger.info(f"[AUTH] Token decoded, user_id: {user_id}")
 
         if not user_id:
+            logger.warning("[AUTH] No user_id in token payload")
             raise HTTPException(status_code=401, detail="Invalid token")
 
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one_or_none()
 
         if not user:
+            logger.warning(f"[AUTH] User not found in DB: {user_id}")
             raise HTTPException(status_code=401, detail="User not found")
 
+        logger.info(f"[AUTH] User authenticated: {user.username} (ID: {user.telegram_id})")
         return user
 
     except jwt.ExpiredSignatureError:
+        logger.warning("[AUTH] Token expired")
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
+        logger.warning("[AUTH] Invalid token")
         raise HTTPException(status_code=401, detail="Invalid token")
