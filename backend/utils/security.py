@@ -2,7 +2,7 @@
 import re
 from typing import List, Optional, Set
 
-from utils.logging import setup_logger
+from backend.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 

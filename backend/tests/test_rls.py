@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.models import (
+from backend.models.models import (
     Chat,
     Message,
     MessageEmbedding,

@@ -17,7 +17,7 @@ async def test_app():
 
         # Test database initialization
         print("\n🔍 Testing database initialization...")
-        from db.database import init_db
+        from backend.db.database import init_db
 
         await init_db()
         print("✅ Database initialized successfully!")

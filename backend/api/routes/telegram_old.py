@@ -7,13 +7,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.routes.auth import get_current_user
-from db.database import get_db
-from models.models import User
-from services.image_service import ImageService
-from services.telegram_service import TelegramService
-from utils.cache import cache
-from utils.logging import setup_logger
+from backend.api.routes.auth import get_current_user
+from backend.db.database import get_db
+from backend.models.models import User
+from backend.services.image_service import ImageService
+from backend.services.telegram_service import TelegramService
+from backend.utils.cache import cache
+from backend.utils.logging import setup_logger
 
 router = APIRouter()
 logger = setup_logger(__name__)

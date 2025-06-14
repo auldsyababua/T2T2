@@ -4,7 +4,7 @@ import os
 import time
 from typing import Any, Dict, Tuple
 
-from utils.logging import setup_logger
+from backend.utils.logging import setup_logger
 
 # Optional dependency – available when `upstash-redis` is installed.
 try:

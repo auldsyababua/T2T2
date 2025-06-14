@@ -6,10 +6,10 @@ from pydantic import BaseModel
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.routes.auth import get_current_user
-from db.database import get_db
-from models.models import Timeline, User
-from services.rag_service import RAGService
+from backend.api.routes.auth import get_current_user
+from backend.db.database import get_db
+from backend.models.models import Timeline, User
+from backend.services.rag_service import RAGService
 
 router = APIRouter()
 

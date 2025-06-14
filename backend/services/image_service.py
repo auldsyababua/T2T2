@@ -8,7 +8,7 @@ import torch
 from open_clip import create_model_and_transforms
 from PIL import Image
 
-from utils.logging import setup_logger
+from backend.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 

@@ -4,8 +4,8 @@ from typing import Dict, List, Optional, Tuple
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.models import Message, Chat
-from utils.logging import setup_logger
+from backend.models.models import Message, Chat
+from backend.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 

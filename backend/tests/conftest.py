@@ -12,10 +12,10 @@ os.environ["ENVIRONMENT"] = "test"
 os.environ["LOG_FILE"] = "/tmp/t2t2_test.log"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 
-from db.database import Base, get_db
+from backend.db.database import Base, get_db
 from main import app
-from models.models import User
-from utils.logging import setup_logger
+from backend.models.models import User
+from backend.utils.logging import setup_logger
 
 # Test logger
 logger = setup_logger("tests")

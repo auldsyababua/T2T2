@@ -13,11 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 # Add path for config import
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from config.authorized_users import is_user_authorized
+from backend.config.authorized_users import is_user_authorized
 
-from db.database import get_db
-from models.models import User
-from utils.logging import setup_logger
+from backend.db.database import get_db
+from backend.models.models import User
+from backend.utils.logging import setup_logger
 
 router = APIRouter()
 security = HTTPBearer()

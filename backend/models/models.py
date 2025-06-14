@@ -15,7 +15,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from db.database import Base
+from backend.db.database import Base
 
 # Only import Vector for PostgreSQL
 DATABASE_URL = os.getenv("DATABASE_URL", "")

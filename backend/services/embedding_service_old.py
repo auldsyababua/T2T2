@@ -6,9 +6,9 @@ from openai import AsyncOpenAI
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.models import Message, MessageEmbedding
-from services.smart_chunking_service import SmartChunkingService
-from utils.logging import setup_logger
+from backend.models.models import Message, MessageEmbedding
+from backend.services.smart_chunking_service import SmartChunkingService
+from backend.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 

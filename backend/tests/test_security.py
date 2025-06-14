@@ -1,7 +1,7 @@
 """Tests for security utilities."""
 import pytest
 
-from utils.security import (
+from backend.utils.security import (
     create_safe_prompt,
     detect_injection_attempt,
     mask_sensitive_data,

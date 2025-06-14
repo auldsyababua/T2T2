@@ -20,7 +20,7 @@ async def test_database():
     try:
         from sqlalchemy import text
 
-        from db.database import engine, init_db
+        from backend.db.database import engine, init_db
 
         # Test connection
         async with engine.begin() as conn:

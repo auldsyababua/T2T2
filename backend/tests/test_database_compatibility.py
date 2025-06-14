@@ -8,7 +8,7 @@ from datetime import datetime
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
-from models.models import Base, User, Chat, Message, MessageEmbedding
+from backend.models.models import Base, User, Chat, Message, MessageEmbedding
 
 
 class TestDatabaseCompatibility:

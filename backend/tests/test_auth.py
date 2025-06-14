@@ -5,7 +5,7 @@ import jwt
 import pytest
 from httpx import AsyncClient
 
-from utils.logging import setup_logger
+from backend.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 

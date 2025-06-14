@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 from sqlalchemy import select
 
-from models.models import Chat, Message, MessageEmbedding, User, UserMessage
-from utils.logging import setup_logger
+from backend.models.models import Chat, Message, MessageEmbedding, User, UserMessage
+from backend.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 

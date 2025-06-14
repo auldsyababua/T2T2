@@ -10,23 +10,23 @@ from telethon.tl.types import Chat as TgChat
 from telethon.tl.types import Message as TgMessage
 from telethon.tl.types import User as TgUser
 
-from models.models import (
+from backend.models.models import (
     Chat as DBChat,
 )
-from models.models import (
+from backend.models.models import (
     Message as DBMessage,
 )
-from models.models import (
+from backend.models.models import (
     MessageImage,
     UserMessage,
 )
-from models.models import (
+from backend.models.models import (
     User as DBUser,
 )
-from services.embedding_service import EmbeddingService
-from services.image_service import ImageService
-from utils.cache import cache
-from utils.logging import setup_logger
+from backend.services.embedding_service import EmbeddingService
+from backend.services.image_service import ImageService
+from backend.utils.cache import cache
+from backend.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 

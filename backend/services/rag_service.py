@@ -6,9 +6,9 @@ from openai import AsyncOpenAI
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.models import Message, MessageEmbedding, Timeline, User
-from utils.logging import setup_logger
-from utils.security import (
+from backend.models.models import Message, MessageEmbedding, Timeline, User
+from backend.utils.logging import setup_logger
+from backend.utils.security import (
     create_safe_prompt,
     detect_injection_attempt,
     log_security_event,
@@ -125,7 +125,7 @@ class RAGService:
                 )
 
             # Get chat information for context
-            from models.models import Chat
+            from backend.models.models import Chat
 
             chat_ids = list(set(msg["chat_id"] for msg in messages))
             chats_result = await self.db.execute(

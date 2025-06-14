@@ -7,7 +7,7 @@ from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from utils.telegram_auth import verify_telegram_webapp_data, extract_user_from_init_data
+from backend.utils.telegram_auth import verify_telegram_webapp_data, extract_user_from_init_data
 
 class TelegramAuthMiddleware(BaseHTTPMiddleware):
     """

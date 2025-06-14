@@ -6,8 +6,8 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from utils.cache import cache
-from utils.logging import setup_logger
+from backend.utils.cache import cache
+from backend.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
 

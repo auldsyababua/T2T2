@@ -6,10 +6,10 @@ from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.routes.auth import get_current_user
-from db.database import get_db
-from models.models import User
-from utils.logging import setup_logger
+from backend.api.routes.auth import get_current_user
+from backend.db.database import get_db
+from backend.models.models import User
+from backend.utils.logging import setup_logger
 
 router = APIRouter()
 logger = setup_logger(__name__)
