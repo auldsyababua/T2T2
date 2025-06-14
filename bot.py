@@ -53,7 +53,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Create keyboard with Web App button
     keyboard = [
         [InlineKeyboardButton(
-            text="🚀 Open T2T2 App", 
+            text="📱 Launch T2T2 App", 
             web_app=WebAppInfo(url=WEBAPP_URL)
         )]
     ]
