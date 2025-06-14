@@ -1,7 +1,7 @@
 # Railway Deployment Guide for T2T2
 
 ## Prerequisites
-- Railway account with token: `855879be-38d1-4aa7-8e23-8daa690e7628`
+- Railway account (token stored securely)
 - GitHub repository connected to Railway
 - All environment variables ready
 
