@@ -41,7 +41,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://localhost:3000",
+        "https://t2t2-app.vercel.app",
+        "https://t2t2-*.vercel.app"  # Allow preview deployments
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
