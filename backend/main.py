@@ -104,6 +104,24 @@ async def test_logging():
     return {"message": "Check logs for test output"}
 
 
+@app.post("/test-auth-headers")
+async def test_auth_headers(request: Request):
+    """Test endpoint to see what headers are received"""
+    headers_dict = dict(request.headers)
+    print(f"[TEST-AUTH] Received headers: {list(headers_dict.keys())}", flush=True)
+    
+    # Look for telegram headers
+    telegram_headers = {k: v for k, v in headers_dict.items() if 'telegram' in k.lower()}
+    print(f"[TEST-AUTH] Telegram headers: {telegram_headers}", flush=True)
+    
+    return {
+        "all_headers": list(headers_dict.keys()),
+        "telegram_headers": telegram_headers,
+        "x_telegram_init_data": headers_dict.get("x-telegram-init-data"),
+        "X_Telegram_Init_Data": headers_dict.get("X-Telegram-Init-Data")
+    }
+
+
 if __name__ == "__main__":
     logger.info("Starting Uvicorn server on http://0.0.0.0:8000")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

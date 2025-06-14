@@ -123,6 +123,16 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
 
 // Authenticate with Telegram Mini App data
 export async function authenticateWithTelegram() {
+  // First test what headers are being sent
+  try {
+    const testResponse = await apiRequest('/test-auth-headers', {
+      method: 'POST',
+    });
+    console.log('[API] Test headers response:', testResponse);
+  } catch (error) {
+    console.error('[API] Test headers failed:', error);
+  }
+  
   const response = await apiRequest('/api/auth/telegram-webapp-auth', {
     method: 'POST',
   });
