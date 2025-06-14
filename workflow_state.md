@@ -31,8 +31,8 @@ Start implementing Phase 0 (Enhanced Data Model) to enable timeline support
 - [x] Blueprint approved by user
 - [x] Phase 0: Enhanced Data Model for chunks
 - [x] Phase 1: Whitelist Authentication
-- [ ] Phase 2: Remove QR code
-- [ ] Phase 3: Deploy to Railway
+- [x] Phase 2: Remove QR code
+- [x] Phase 3: Deploy to Railway
 - [ ] Phase 4: Test end-to-end
 
 ## Discoveries
@@ -261,7 +261,16 @@ Results in 5 chunks:
   - Updated bot.py with authorization checks
   - Added whitelist check to backend auth
   - Commands: /search and /timeline ready for future implementation
-- 🔧 Starting Phase 2: Remove QR code functionality
+- ✅ Phase 2 Complete:
+  - Removed QR login from telegram_service.py
+  - Removed QR endpoints from API routes
+  - Deleted QRLogin component from frontend
+  - Removed qrcode dependency
+- ✅ Phase 3 Complete:
+  - Created Railway deployment configuration
+  - Added Procfile, railway.json, railway.toml
+  - Created comprehensive DEPLOY.md guide
+  - Ready for deployment with provided token
 
 ## Validation Results
 <!-- Test results and verification during VALIDATE phase -->
