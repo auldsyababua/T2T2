@@ -17,33 +17,51 @@ export function App() {
   const [isEditing, setIsEditing] = useState(false);
   
   useEffect(() => {
-    // Initialize Telegram Web App
-    const tg = initTelegramWebApp();
+    // Wait a bit for Telegram script to fully initialize
+    const initializeApp = () => {
+      const tg = initTelegramWebApp();
+      
+      if (!tg) {
+        // Not running inside Telegram
+        setAuthError('This app must be opened from within Telegram');
+        return;
+      }
+      
+      // Signal to Telegram that the app is ready FIRST
+      tg.ready();
+      
+      // Small delay to ensure ready() is processed
+      setTimeout(() => {
+        // Debug: Log current state
+        console.log('[DEBUG] Window hash:', window.location.hash);
+        console.log('[DEBUG] Has tg.initData:', !!tg.initData);
+        console.log('[DEBUG] initData length:', tg.initData?.length || 0);
+        
+        // Now check for initData
+        if (!tg.initData) {
+          setAuthError(`No authentication data available. Please open this app from the Telegram bot.\n\nDebug: Hash=${window.location.hash.substring(0, 50)}...`);
+          return;
+        }
+        
+        // We have valid Telegram auth data
+        setIsInitialized(true);
+        
+        // Configure Telegram UI
+        tg.expand();
+        tg.MainButton.setText('Continue');
+        tg.BackButton.onClick(() => handleBackStep());
+        
+        // Enable closing confirmation when data is being processed
+        tg.enableClosingConfirmation();
+      }, 100);
+    };
     
-    if (!tg) {
-      // Not running inside Telegram
-      setAuthError('This app must be opened from within Telegram');
-      return;
+    // Give Telegram script time to inject data
+    if (document.readyState === 'complete') {
+      initializeApp();
+    } else {
+      window.addEventListener('load', initializeApp);
     }
-    
-    // Telegram Web App is available
-    if (!tg.initData) {
-      setAuthError('No authentication data available. Please open this app from the Telegram bot.');
-      return;
-    }
-    
-    // We have valid Telegram auth data
-    setIsInitialized(true);
-    
-    // Configure Telegram UI
-    tg.ready();
-    tg.expand();
-    tg.MainButton.setText('Continue');
-    tg.BackButton.onClick(() => handleBackStep());
-    
-    // Enable closing confirmation when data is being processed
-    tg.enableClosingConfirmation();
-    
   }, []);
   
   const handleChatSelect = (chatId: string) => {
