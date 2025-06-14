@@ -39,7 +39,7 @@ export function App() {
         
         // Now check for initData
         if (!tg.initData) {
-          setAuthError(`No authentication data available. Please open this app from the Telegram bot.\n\nDebug: Hash=${window.location.hash.substring(0, 50)}...`);
+          setAuthError(`No authentication data available. Please open this app from the Telegram bot.\n\nDebug: Hash=${window.location.hash.substring(0, 50)}...\nVersion: 3.28AM\nURL: ${window.location.href}`);
           return;
         }
         
