@@ -68,10 +68,24 @@ async def telegram_webapp_auth(
     """Authenticate using Telegram Mini App initData"""
     from backend.utils.telegram_auth import verify_telegram_webapp_data, extract_user_from_init_data
     
+    # Log all headers for debugging
+    logger.info("[AUTH] Request headers:")
+    for header_name, header_value in request.headers.items():
+        if header_name.lower().startswith('x-telegram'):
+            logger.info(f"[AUTH] Header {header_name}: {header_value[:50]}...")
+    
     # Get initData from header
     init_data = request.headers.get("X-Telegram-Init-Data")
+    logger.info(f"[AUTH] Raw init_data from header: {repr(init_data)[:100] if init_data else 'None'}")
+    
+    # Also check lowercase version
+    if not init_data:
+        init_data = request.headers.get("x-telegram-init-data")
+        logger.info(f"[AUTH] Trying lowercase header: {repr(init_data)[:100] if init_data else 'None'}")
+    
     if not init_data:
         logger.warning("[AUTH] No init data in request")
+        logger.warning(f"[AUTH] All headers: {list(request.headers.keys())}")
         raise HTTPException(status_code=401, detail="No authentication data")
     
     logger.info("[AUTH] Received webapp auth request")

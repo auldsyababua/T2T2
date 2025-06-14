@@ -49,7 +49,7 @@ app.add_middleware(
     ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-Telegram-Init-Data"],  # Explicitly allow custom header
 )
 
 # Global rate-limit: 100 req / minute per client IP

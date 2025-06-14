@@ -84,9 +84,13 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'X-Telegram-Init-Data': initData,
     ...options.headers,
   };
+  
+  // Only add X-Telegram-Init-Data if we have valid initData
+  if (initData) {
+    headers['X-Telegram-Init-Data'] = initData;
+  }
   
   // Add Authorization header if we have a token
   if (authToken) {

@@ -24,6 +24,11 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str, max_age: int = 8
     logger = logging.getLogger(__name__)
     
     try:
+        # Check if init_data is None or empty
+        if not init_data:
+            logger.error("[AUTH] init_data is None or empty")
+            return None
+            
         logger.info(f"[AUTH] Verifying init data length: {len(init_data)}")
         logger.debug(f"[AUTH] Init data first 100 chars: {init_data[:100]}...")
         # Parse the init data
@@ -83,7 +88,10 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str, max_age: int = 8
         
         return parsed_data
         
-    except Exception:
+    except Exception as e:
+        logger.error(f"[AUTH] Exception in verify_telegram_webapp_data: {type(e).__name__}: {str(e)}")
+        logger.error(f"[AUTH] init_data type: {type(init_data)}, value: {repr(init_data)[:100] if init_data else 'None'}")
+        logger.error(f"[AUTH] bot_token present: {bool(bot_token)}")
         return None
 
 def extract_user_from_init_data(init_data_dict: Dict) -> Optional[Dict]:
