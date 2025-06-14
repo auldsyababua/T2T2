@@ -44,7 +44,7 @@ export function initTelegramWebApp() {
   if (window.Telegram?.WebApp) {
     // @ts-ignore
     const tg = window.Telegram.WebApp;
-    tg.ready();
+    // Don't call ready() here - let the app control when to call it
     return tg;
   }
   return null;
@@ -59,8 +59,16 @@ export function getTelegramInitData(): string {
   // Debug: Show init data status in error messages
   if (!tg) {
     console.error('[API] Telegram WebApp not available');
+    console.error('[API] window.Telegram:', window.Telegram);
   } else if (!initData) {
     console.error('[API] No initData from Telegram');
+    console.error('[API] WebApp object:', tg);
+    console.error('[API] WebApp version:', tg.version);
+    console.error('[API] WebApp platform:', tg.platform);
+    // Try to get initDataUnsafe as fallback
+    console.error('[API] initDataUnsafe:', tg.initDataUnsafe);
+  } else {
+    console.log('[API] Got initData, length:', initData.length);
   }
   
   return initData;

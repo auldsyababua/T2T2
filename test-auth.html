@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Telegram Auth</title>
+</head>
+<body>
+    <h1>Test Telegram Authentication</h1>
+    <button onclick="testAuth()">Test Auth Headers</button>
+    <button onclick="testAuthWithData()">Test Auth with Fake Data</button>
+    <pre id="result"></pre>
+
+    <script>
+        const API_URL = 'https://t2t2-production.up.railway.app';
+        
+        async function testAuth() {
+            try {
+                const response = await fetch(`${API_URL}/test-auth-headers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': 'test-data-123'
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function testAuthWithData() {
+            try {
+                // Simulate Telegram init data
+                const fakeInitData = 'query_id=AAHdF6IQAAAAAN0XohBgyTgo&user=%7B%22id%22%3A5751758169%2C%22first_name%22%3A%22Colin%22%2C%22last_name%22%3A%22Aulds%22%2C%22username%22%3A%22colinaulds%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1749920000&hash=f7b6c5e4d3a2b1c9e8d7f6a5b4c3d2e1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6';
+                
+                const response = await fetch(`${API_URL}/api/auth/telegram-webapp-auth`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': fakeInitData
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

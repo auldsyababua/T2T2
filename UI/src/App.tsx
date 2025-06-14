@@ -34,12 +34,17 @@ export function App() {
       setTimeout(() => {
         // Debug: Log current state
         console.log('[DEBUG] Window hash:', window.location.hash);
+        console.log('[DEBUG] Window location:', window.location.href);
+        console.log('[DEBUG] Telegram WebApp:', tg);
         console.log('[DEBUG] Has tg.initData:', !!tg.initData);
         console.log('[DEBUG] initData length:', tg.initData?.length || 0);
+        console.log('[DEBUG] initDataUnsafe:', tg.initDataUnsafe);
+        console.log('[DEBUG] WebApp version:', tg.version);
+        console.log('[DEBUG] WebApp platform:', tg.platform);
         
         // Now check for initData
         if (!tg.initData) {
-          setAuthError(`No authentication data available. Please open this app from the Telegram bot.\n\nDebug: Hash=${window.location.hash.substring(0, 50)}...\nVersion: 4.30AM LATEST\nURL: ${window.location.href}\nDeployment: ${new Date().toISOString()}`);
+          setAuthError(`No authentication data available. Please open this app from the Telegram bot.\n\nDebug: Hash=${window.location.hash.substring(0, 50)}...\nVersion: 5.00AM FIXED\nURL: ${window.location.href}\nPlatform: ${tg.platform}\nWebApp Version: ${tg.version}`);
           return;
         }
         
