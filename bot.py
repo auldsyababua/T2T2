@@ -54,7 +54,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton(
             text="🚀 Open T2T2 App", 
-            web_app=WebAppInfo(url=f"{WEBAPP_URL}?user_id={user.id}")
+            web_app=WebAppInfo(url=WEBAPP_URL)
         )]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
