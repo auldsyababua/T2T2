@@ -5,7 +5,7 @@ import sys
 from datetime import datetime, timedelta
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -58,6 +58,78 @@ def verify_telegram_auth(auth_data: dict) -> bool:
     is_valid = calculated_hash == check_hash
     logger.debug(f"Auth verification result: {is_valid}")
     return is_valid
+
+
+@router.post("/telegram-webapp-auth")
+async def telegram_webapp_auth(
+    request: Request, db: AsyncSession = Depends(get_db)
+):
+    """Authenticate using Telegram Mini App initData"""
+    from backend.utils.telegram_auth import verify_telegram_webapp_data, extract_user_from_init_data
+    
+    # Get initData from header
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    if not init_data:
+        logger.warning("[AUTH] No init data in request")
+        raise HTTPException(status_code=401, detail="No authentication data")
+    
+    logger.info("[AUTH] Received webapp auth request")
+    
+    # Verify the data
+    verified_data = verify_telegram_webapp_data(init_data, BOT_TOKEN)
+    if not verified_data:
+        logger.warning("[AUTH] Invalid init data")
+        raise HTTPException(status_code=401, detail="Invalid authentication data")
+    
+    # Extract user info
+    user_data = extract_user_from_init_data(verified_data)
+    if not user_data:
+        logger.warning("[AUTH] No user data in init data")
+        raise HTTPException(status_code=401, detail="No user data")
+    
+    telegram_id = int(user_data["telegram_id"])
+    username = user_data.get("username")
+    
+    logger.info(f"[AUTH] Webapp auth for user: {username} (ID: {telegram_id})")
+    
+    # Check whitelist
+    if username and not is_user_authorized(username=username, user_id=telegram_id):
+        logger.warning(f"[AUTH] Unauthorized: @{username} (ID: {telegram_id})")
+        raise HTTPException(status_code=403, detail="Not authorized to use this service")
+    
+    # Get or create user
+    result = await db.execute(select(User).where(User.telegram_id == telegram_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        user = User(
+            telegram_id=telegram_id,
+            username=username,
+            first_name=user_data.get("first_name"),
+            last_name=user_data.get("last_name"),
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        logger.info(f"[AUTH] Created new user: {user.username}")
+    else:
+        logger.info(f"[AUTH] Found existing user: {user.username}")
+    
+    # Generate JWT token
+    token_data = {"user_id": str(user.id)}
+    token = jwt.encode(token_data, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {
+            "id": str(user.id),
+            "telegram_id": user.telegram_id,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        },
+    }
 
 
 @router.post("/telegram-auth")

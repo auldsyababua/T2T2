@@ -79,13 +79,23 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
     initDataLength: initData.length,
   });
   
+  // Get auth token if available
+  const authToken = localStorage.getItem('auth_token');
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-Telegram-Init-Data': initData,
+    ...options.headers,
+  };
+  
+  // Add Authorization header if we have a token
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+  
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Telegram-Init-Data': initData,
-      ...options.headers,
-    },
+    headers,
   });
 
   console.log('[API] Response:', {
@@ -107,8 +117,29 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
 
 // Authentication handled through Telegram bot - QR login removed
 
+// Authenticate with Telegram Mini App data
+export async function authenticateWithTelegram() {
+  const response = await apiRequest('/api/auth/telegram-webapp-auth', {
+    method: 'POST',
+  });
+  
+  // Store the token for future requests
+  if (response.access_token) {
+    localStorage.setItem('auth_token', response.access_token);
+  }
+  
+  return response;
+}
+
 // Get user's chats
 export async function getUserChats(): Promise<Chat[]> {
+  // First ensure we're authenticated
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    // Try to authenticate
+    await authenticateWithTelegram();
+  }
+  
   return apiRequest('/api/telegram/chats');
 }
 
