@@ -26,6 +26,7 @@ logger = setup_logger(__name__)
 JWT_SECRET = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+logger.info(f"[AUTH] Bot token loaded: {bool(BOT_TOKEN)}, last 4 chars: ...{BOT_TOKEN[-4:] if BOT_TOKEN else 'None'}")
 
 
 class TelegramAuthData(BaseModel):
@@ -74,6 +75,9 @@ async def telegram_webapp_auth(
         raise HTTPException(status_code=401, detail="No authentication data")
     
     logger.info("[AUTH] Received webapp auth request")
+    logger.info(f"[AUTH] Init data length: {len(init_data)}")
+    logger.info(f"[AUTH] Init data first 50 chars: {init_data[:50]}...")
+    logger.info(f"[AUTH] Bot token present: {bool(BOT_TOKEN)}")
     
     # Verify the data
     verified_data = verify_telegram_webapp_data(init_data, BOT_TOKEN)
