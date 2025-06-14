@@ -136,8 +136,16 @@ export async function getUserChats(): Promise<Chat[]> {
   // First ensure we're authenticated
   const token = localStorage.getItem('auth_token');
   if (!token) {
-    // Try to authenticate
-    await authenticateWithTelegram();
+    console.log('[API] No auth token, attempting to authenticate...');
+    try {
+      await authenticateWithTelegram();
+      console.log('[API] Authentication successful');
+    } catch (error) {
+      console.error('[API] Authentication failed:', error);
+      throw new Error(`Authentication failed: ${error.message}`);
+    }
+  } else {
+    console.log('[API] Using existing auth token');
   }
   
   return apiRequest('/api/telegram/chats');

@@ -35,13 +35,19 @@ export function ChatSelection({
       // Enhanced error logging for debugging
       // @ts-ignore
       const tg = window.Telegram?.WebApp;
+      const authToken = localStorage.getItem('auth_token');
       const errorDetails = [
         `Error: ${err.message || 'Unknown error'}`,
         `API URL: ${import.meta.env.VITE_API_URL || 'not set'}`,
         `Type: ${err.name || 'Unknown'}`,
         `Has Telegram: ${!!tg}`,
         `Has InitData: ${!!(tg?.initData)}`,
+        `Has Auth Token: ${!!authToken}`,
+        `Token Length: ${authToken?.length || 0}`,
       ];
+      
+      // Log full error to console
+      console.error('[ChatSelection] Full error:', err);
       
       if (err.message?.includes('fetch')) {
         errorDetails.push('Network error - API might be unreachable');
