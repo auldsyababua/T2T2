@@ -32,7 +32,22 @@ export function ChatSelection({
       const data = await getUserChats();
       setChats(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to load chats');
+      // Enhanced error logging for debugging
+      // @ts-ignore
+      const tg = window.Telegram?.WebApp;
+      const errorDetails = [
+        `Error: ${err.message || 'Unknown error'}`,
+        `API URL: ${import.meta.env.VITE_API_URL || 'not set'}`,
+        `Type: ${err.name || 'Unknown'}`,
+        `Has Telegram: ${!!tg}`,
+        `Has InitData: ${!!(tg?.initData)}`,
+      ];
+      
+      if (err.message?.includes('fetch')) {
+        errorDetails.push('Network error - API might be unreachable');
+      }
+      
+      setError(errorDetails.join('\n'));
     } finally {
       setLoading(false);
     }
@@ -63,7 +78,7 @@ export function ChatSelection({
       
       {error && (
         <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
-          <p>{error}</p>
+          <pre className="whitespace-pre-wrap text-xs font-mono">{error}</pre>
           <button onClick={loadChats} className="mt-2 text-sm underline hover:no-underline">
             Try again
           </button>

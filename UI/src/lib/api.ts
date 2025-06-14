@@ -54,7 +54,16 @@ export function initTelegramWebApp() {
 export function getTelegramInitData(): string {
   // @ts-ignore
   const tg = window.Telegram?.WebApp;
-  return tg?.initData || '';
+  const initData = tg?.initData || '';
+  
+  // Debug: Show init data status in error messages
+  if (!tg) {
+    console.error('[API] Telegram WebApp not available');
+  } else if (!initData) {
+    console.error('[API] No initData from Telegram');
+  }
+  
+  return initData;
 }
 
 // API client with auth headers
