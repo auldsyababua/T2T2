@@ -28,6 +28,11 @@ JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 logger.info(f"[AUTH] Bot token loaded: {bool(BOT_TOKEN)}, last 4 chars: ...{BOT_TOKEN[-4:] if BOT_TOKEN else 'None'}")
 
+# Force flush logs
+import sys
+sys.stdout.flush()
+sys.stderr.flush()
+
 
 class TelegramAuthData(BaseModel):
     id: int
@@ -68,11 +73,17 @@ async def telegram_webapp_auth(
     """Authenticate using Telegram Mini App initData"""
     from backend.utils.telegram_auth import verify_telegram_webapp_data, extract_user_from_init_data
     
+    # Also print to stdout for Railway
+    print(f"[AUTH] telegram-webapp-auth endpoint called", flush=True)
+    
     # Log all headers for debugging
     logger.info("[AUTH] Request headers:")
+    print(f"[AUTH] All headers: {list(request.headers.keys())}", flush=True)
+    
     for header_name, header_value in request.headers.items():
         if header_name.lower().startswith('x-telegram'):
             logger.info(f"[AUTH] Header {header_name}: {header_value[:50]}...")
+            print(f"[AUTH] Header {header_name}: {header_value[:50]}...", flush=True)
     
     # Get initData from header
     init_data = request.headers.get("X-Telegram-Init-Data")

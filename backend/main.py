@@ -89,7 +89,19 @@ app.include_router(query.router, prefix="/api/query", tags=["query"])
 @app.get("/health")
 async def health_check():
     logger.debug("Health check requested")
+    print("[HEALTH] Health check called", flush=True)
     return {"status": "healthy"}
+
+
+@app.get("/test-logging")
+async def test_logging():
+    """Test endpoint to verify logging is working"""
+    print("[TEST] Print statement", flush=True)
+    logger.debug("[TEST] Debug log")
+    logger.info("[TEST] Info log")
+    logger.warning("[TEST] Warning log")
+    logger.error("[TEST] Error log")
+    return {"message": "Check logs for test output"}
 
 
 if __name__ == "__main__":
