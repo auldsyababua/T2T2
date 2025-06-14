@@ -1,1 +1,1 @@
-web: python -m uvicorn test_main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 75
+web: python -m uvicorn main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 75
