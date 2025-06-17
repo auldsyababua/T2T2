@@ -120,10 +120,29 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
     const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
     console.error('[API] Error:', error);
     
-    // If error has debug info, create enhanced error
+    // If error has debug info, include it in the message
     if (error.detail && typeof error.detail === 'object' && error.detail.debug) {
-      const err = new Error(error.detail.error || 'Unknown error');
-      (err as any).debug = error.detail.debug;
+      const debug = error.detail.debug;
+      const debugMessage = `${error.detail.error || 'Unknown error'}
+
+=== AUTH DEBUG INFO ===
+Hash Match: ${debug.hash_match}
+Bot Token Last 4: ${debug.bot_token_last4}
+
+RECEIVED HASH:
+${debug.received_hash || 'none'}
+
+CALCULATED HASH:
+${debug.calculated_hash || 'none'}
+
+DATA CHECK STRING:
+${debug.data_check_string_preview || 'none'}
+
+PARSED PARAMS:
+${JSON.stringify(debug.parsed_params || [])}`;
+      
+      const err = new Error(debugMessage);
+      (err as any).debug = debug;
       throw err;
     }
     
