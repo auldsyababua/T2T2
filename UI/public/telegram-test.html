@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telegram Init Data Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <h1>Telegram WebApp Test</h1>
+    <div id="output"></div>
+    <script>
+        const output = document.getElementById('output');
+        const tg = window.Telegram?.WebApp;
+        
+        output.innerHTML = `
+            <p>Telegram available: ${!!window.Telegram}</p>
+            <p>WebApp available: ${!!tg}</p>
+            <p>InitData: ${tg?.initData || 'NONE'}</p>
+            <p>InitData length: ${tg?.initData?.length || 0}</p>
+            <p>Version: ${tg?.version || 'N/A'}</p>
+            <p>Platform: ${tg?.platform || 'N/A'}</p>
+            <p>User: ${JSON.stringify(tg?.initDataUnsafe?.user || {})}</p>
+            <hr>
+            <pre>${JSON.stringify({
+                initData: tg?.initData,
+                initDataUnsafe: tg?.initDataUnsafe,
+                version: tg?.version,
+                platform: tg?.platform
+            }, null, 2)}</pre>
+        `;
+        
+        if (tg) {
+            tg.ready();
+        }
+    </script>
+</body>
+</html>
