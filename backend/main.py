@@ -140,6 +140,72 @@ async def test_auth_headers(request: Request):
     }
 
 
+@app.post("/test-auth-verify")
+async def test_auth_verify(request: Request):
+    """Test endpoint that returns verification details instead of just logging"""
+    from backend.utils.telegram_auth import verify_telegram_webapp_data
+    import os
+    
+    BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+    init_data = request.headers.get("X-Telegram-Init-Data")
+    
+    if not init_data:
+        return {"error": "No init data provided"}
+    
+    # Manual verification to get details
+    import hmac
+    import hashlib
+    from urllib.parse import parse_qs, unquote
+    
+    try:
+        # Parse the data
+        parsed_data = {}
+        data_check_string_parts = []
+        
+        for part in init_data.split('&'):
+            if '=' in part:
+                key, value = part.split('=', 1)
+                key = unquote(key)
+                value = unquote(value)
+                
+                if key != 'hash':
+                    data_check_string_parts.append(f"{key}={value}")
+                    parsed_data[key] = value
+                else:
+                    received_hash = value
+        
+        # Sort and create data check string
+        data_check_string_parts.sort()
+        data_check_string = '\n'.join(data_check_string_parts)
+        
+        # Calculate hash
+        secret_key = hmac.new(
+            b"WebAppData",
+            BOT_TOKEN.encode(),
+            hashlib.sha256
+        ).digest()
+        
+        calculated_hash = hmac.new(
+            secret_key,
+            data_check_string.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        return {
+            "success": calculated_hash == received_hash,
+            "received_hash": received_hash,
+            "calculated_hash": calculated_hash,
+            "data_check_string": data_check_string,
+            "parsed_params": list(parsed_data.keys()),
+            "bot_token_last4": f"...{BOT_TOKEN[-4:]}" if BOT_TOKEN else "None"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "type": type(e).__name__
+        }
+
+
 if __name__ == "__main__":
     logger.info("Starting Uvicorn server on http://0.0.0.0:8000")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

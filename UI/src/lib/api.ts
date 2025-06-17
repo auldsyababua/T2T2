@@ -141,6 +141,23 @@ export async function authenticateWithTelegram() {
     console.error('[API] Test headers failed:', error);
   }
   
+  // Test the verification to see why it's failing
+  try {
+    const verifyResponse = await apiRequest('/test-auth-verify', {
+      method: 'POST',
+    });
+    console.error('[API] VERIFICATION TEST:', verifyResponse);
+    if (!verifyResponse.success) {
+      console.error('[API] Hash mismatch details:', {
+        received: verifyResponse.received_hash,
+        calculated: verifyResponse.calculated_hash,
+        dataString: verifyResponse.data_check_string
+      });
+    }
+  } catch (error) {
+    console.error('[API] Test verify failed:', error);
+  }
+  
   const response = await apiRequest('/api/auth/telegram-webapp-auth', {
     method: 'POST',
   });
