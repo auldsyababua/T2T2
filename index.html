@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telegram Auth Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+        }
+        .error { color: #ff0000; }
+        .success { color: #00ff00; }
+        pre {
+            background: #000;
+            padding: 10px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00cc00;
+        }
+    </style>
+</head>
+<body>
+    <h1>Telegram Auth Test</h1>
+    
+    <div class="section">
+        <h2>Step 1: Telegram Web App Data</h2>
+        <div id="telegram-data">Loading...</div>
+    </div>
+
+    <div class="section">
+        <h2>Step 2: Test Authentication</h2>
+        <button onclick="testAuth()">Test Backend Auth (Railway)</button>
+        <button onclick="copyInitData()">Copy Init Data</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Debug Info</h2>
+        <pre id="debug-info"></pre>
+    </div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        
+        function updateDisplay() {
+            const dataDiv = document.getElementById('telegram-data');
+            const debugDiv = document.getElementById('debug-info');
+            
+            if (!tg) {
+                dataDiv.innerHTML = '<div class="error">Telegram WebApp not available!</div>';
+                debugDiv.textContent = 'window.Telegram = ' + JSON.stringify(window.Telegram, null, 2);
+                return;
+            }
+            
+            // Display init data
+            dataDiv.innerHTML = `
+                <div><strong>Init Data:</strong> ${tg.initData ? 'Available (' + tg.initData.length + ' chars)' : 'NOT AVAILABLE'}</div>
+                <div><strong>Version:</strong> ${tg.version}</div>
+                <div><strong>Platform:</strong> ${tg.platform}</div>
+                <div><strong>User:</strong> ${tg.initDataUnsafe?.user ? JSON.stringify(tg.initDataUnsafe.user) : 'No user data'}</div>
+            `;
+            
+            // Show full debug info
+            debugDiv.textContent = JSON.stringify({
+                initData: tg.initData,
+                initDataUnsafe: tg.initDataUnsafe,
+                version: tg.version,
+                platform: tg.platform,
+                colorScheme: tg.colorScheme,
+                themeParams: tg.themeParams
+            }, null, 2);
+        }
+        
+        async function testAuth() {
+            const resultDiv = document.getElementById('auth-result');
+            
+            if (!tg?.initData) {
+                resultDiv.innerHTML = '<div class="error">No init data available!</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div>Testing authentication...</div>';
+            
+            // Test against Railway backend
+            const railwayUrl = 'https://t2t2-production.up.railway.app/api/auth/telegram-webapp-auth';
+            
+            try {
+                const response = await fetch(railwayUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': tg.initData
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">✓ Authentication successful!</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">✗ Authentication failed!</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">✗ Request failed: ${error.message}</div>
+                    <div>URL: ${railwayUrl}</div>
+                `;
+            }
+        }
+        
+        function copyInitData() {
+            if (!tg?.initData) {
+                alert('No init data available!');
+                return;
+            }
+            
+            navigator.clipboard.writeText(tg.initData).then(() => {
+                alert('Init data copied to clipboard!');
+            });
+        }
+        
+        // Initialize display
+        updateDisplay();
+        
+        // Mark as ready
+        if (tg) {
+            tg.ready();
+        }
+    </script>
+</body>
+</html>
