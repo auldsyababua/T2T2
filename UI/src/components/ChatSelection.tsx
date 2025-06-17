@@ -46,6 +46,34 @@ export function ChatSelection({
         `Token Length: ${authToken?.length || 0}`,
       ];
       
+      // Add verification details if available
+      if ((err as any).verifyDetails) {
+        const details = (err as any).verifyDetails;
+        errorDetails.push('');
+        errorDetails.push('=== VERIFICATION DETAILS ===');
+        errorDetails.push(`Success: ${details.success}`);
+        errorDetails.push(`Bot Token Last 4: ${details.bot_token_last4}`);
+        errorDetails.push('');
+        errorDetails.push('RECEIVED HASH:');
+        errorDetails.push(details.received_hash || 'none');
+        errorDetails.push('');
+        errorDetails.push('CALCULATED HASH:');
+        errorDetails.push(details.calculated_hash || 'none');
+        errorDetails.push('');
+        errorDetails.push('DATA CHECK STRING:');
+        errorDetails.push(details.data_check_string || 'none');
+        errorDetails.push('');
+        errorDetails.push('PARSED PARAMS:');
+        errorDetails.push(JSON.stringify(details.parsed_params || []));
+        
+        // Add raw init data
+        if (tg?.initData) {
+          errorDetails.push('');
+          errorDetails.push('RAW INIT DATA:');
+          errorDetails.push(tg.initData.substring(0, 200) + '...');
+        }
+      }
+      
       // Log full error to console
       console.error('[ChatSelection] Full error:', err);
       

@@ -142,12 +142,14 @@ export async function authenticateWithTelegram() {
   }
   
   // Test the verification to see why it's failing
+  let verifyDetails = null;
   try {
     const verifyResponse = await apiRequest('/test-auth-verify', {
       method: 'POST',
     });
     console.error('[API] VERIFICATION TEST:', verifyResponse);
     if (!verifyResponse.success) {
+      verifyDetails = verifyResponse;
       console.error('[API] Hash mismatch details:', {
         received: verifyResponse.received_hash,
         calculated: verifyResponse.calculated_hash,
@@ -156,6 +158,13 @@ export async function authenticateWithTelegram() {
     }
   } catch (error) {
     console.error('[API] Test verify failed:', error);
+  }
+  
+  // If we have verification details, throw them as part of the error
+  if (verifyDetails && !verifyDetails.success) {
+    const error = new Error(`Invalid authentication data`);
+    (error as any).verifyDetails = verifyDetails;
+    throw error;
   }
   
   const response = await apiRequest('/api/auth/telegram-webapp-auth', {
