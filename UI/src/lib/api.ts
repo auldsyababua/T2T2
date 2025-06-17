@@ -119,7 +119,15 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
     console.error('[API] Error:', error);
-    throw new Error(error.detail || `HTTP ${response.status}`);
+    
+    // If error has debug info, create enhanced error
+    if (error.detail && typeof error.detail === 'object' && error.detail.debug) {
+      const err = new Error(error.detail.error || 'Unknown error');
+      (err as any).debug = error.detail.debug;
+      throw err;
+    }
+    
+    throw new Error(typeof error.detail === 'string' ? error.detail : (error.detail?.error || `HTTP ${response.status}`));
   }
 
   const data = await response.json();
@@ -131,42 +139,6 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
 
 // Authenticate with Telegram Mini App data
 export async function authenticateWithTelegram() {
-  // First test what headers are being sent
-  try {
-    const testResponse = await apiRequest('/test-auth-headers', {
-      method: 'POST',
-    });
-    console.log('[API] Test headers response:', testResponse);
-  } catch (error) {
-    console.error('[API] Test headers failed:', error);
-  }
-  
-  // Test the verification to see why it's failing
-  let verifyDetails = null;
-  try {
-    const verifyResponse = await apiRequest('/test-auth-verify', {
-      method: 'POST',
-    });
-    console.error('[API] VERIFICATION TEST:', verifyResponse);
-    if (!verifyResponse.success) {
-      verifyDetails = verifyResponse;
-      console.error('[API] Hash mismatch details:', {
-        received: verifyResponse.received_hash,
-        calculated: verifyResponse.calculated_hash,
-        dataString: verifyResponse.data_check_string
-      });
-    }
-  } catch (error) {
-    console.error('[API] Test verify failed:', error);
-  }
-  
-  // If we have verification details, throw them as part of the error
-  if (verifyDetails && !verifyDetails.success) {
-    const error = new Error(`Invalid authentication data`);
-    (error as any).verifyDetails = verifyDetails;
-    throw error;
-  }
-  
   const response = await apiRequest('/api/auth/telegram-webapp-auth', {
     method: 'POST',
   });

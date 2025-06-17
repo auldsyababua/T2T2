@@ -104,11 +104,67 @@ async def telegram_webapp_auth(
     logger.info(f"[AUTH] Init data first 50 chars: {init_data[:50]}...")
     logger.info(f"[AUTH] Bot token present: {bool(BOT_TOKEN)}")
     
-    # Verify the data
+    # Verify the data and get debug info
     verified_data = verify_telegram_webapp_data(init_data, BOT_TOKEN)
     if not verified_data:
         logger.warning("[AUTH] Invalid init data")
-        raise HTTPException(status_code=401, detail="Invalid authentication data")
+        
+        # Calculate debug info to return in error
+        import hmac
+        import hashlib
+        from urllib.parse import unquote
+        
+        debug_info = {"error": "Invalid authentication data"}
+        try:
+            # Parse the data for debugging
+            parsed_data = {}
+            data_check_string_parts = []
+            received_hash = ""
+            
+            for part in init_data.split('&'):
+                if '=' in part:
+                    key, value = part.split('=', 1)
+                    key = unquote(key)
+                    value = unquote(value)
+                    
+                    if key != 'hash':
+                        data_check_string_parts.append(f"{key}={value}")
+                        parsed_data[key] = value
+                    else:
+                        received_hash = value
+            
+            # Sort and create data check string
+            data_check_string_parts.sort()
+            data_check_string = '\n'.join(data_check_string_parts)
+            
+            # Calculate hash
+            secret_key = hmac.new(
+                b"WebAppData",
+                BOT_TOKEN.encode(),
+                hashlib.sha256
+            ).digest()
+            
+            calculated_hash = hmac.new(
+                secret_key,
+                data_check_string.encode(),
+                hashlib.sha256
+            ).hexdigest()
+            
+            debug_info = {
+                "error": "Invalid authentication data",
+                "debug": {
+                    "received_hash": received_hash[:20] + "...",
+                    "calculated_hash": calculated_hash[:20] + "...",
+                    "hash_match": calculated_hash == received_hash,
+                    "data_check_string_preview": data_check_string[:100] + "...",
+                    "parsed_params": list(parsed_data.keys()),
+                    "bot_token_last4": BOT_TOKEN[-4:] if BOT_TOKEN else "None"
+                }
+            }
+        except Exception as e:
+            debug_info["debug_error"] = str(e)
+        
+        raise HTTPException(status_code=401, detail=debug_info)
     
     # Extract user info
     user_data = extract_user_from_init_data(verified_data)

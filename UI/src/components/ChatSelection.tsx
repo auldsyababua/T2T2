@@ -46,30 +46,30 @@ export function ChatSelection({
         `Token Length: ${authToken?.length || 0}`,
       ];
       
-      // Add verification details if available
-      if ((err as any).verifyDetails) {
-        const details = (err as any).verifyDetails;
+      // Add debug details if available
+      if ((err as any).debug) {
+        const debug = (err as any).debug;
         errorDetails.push('');
-        errorDetails.push('=== VERIFICATION DETAILS ===');
-        errorDetails.push(`Success: ${details.success}`);
-        errorDetails.push(`Bot Token Last 4: ${details.bot_token_last4}`);
+        errorDetails.push('=== AUTH DEBUG INFO ===');
+        errorDetails.push(`Hash Match: ${debug.hash_match}`);
+        errorDetails.push(`Bot Token Last 4: ${debug.bot_token_last4}`);
         errorDetails.push('');
         errorDetails.push('RECEIVED HASH:');
-        errorDetails.push(details.received_hash || 'none');
+        errorDetails.push(debug.received_hash || 'none');
         errorDetails.push('');
         errorDetails.push('CALCULATED HASH:');
-        errorDetails.push(details.calculated_hash || 'none');
+        errorDetails.push(debug.calculated_hash || 'none');
         errorDetails.push('');
         errorDetails.push('DATA CHECK STRING:');
-        errorDetails.push(details.data_check_string || 'none');
+        errorDetails.push(debug.data_check_string_preview || 'none');
         errorDetails.push('');
         errorDetails.push('PARSED PARAMS:');
-        errorDetails.push(JSON.stringify(details.parsed_params || []));
+        errorDetails.push(JSON.stringify(debug.parsed_params || []));
         
         // Add raw init data
         if (tg?.initData) {
           errorDetails.push('');
-          errorDetails.push('RAW INIT DATA:');
+          errorDetails.push('RAW INIT DATA (first 200 chars):');
           errorDetails.push(tg.initData.substring(0, 200) + '...');
         }
       }
