@@ -1,0 +1,11 @@
+{
+  "remote.SSH.remotePlatform": {
+    "workhorse@10.0.0.2": "linux"
+  },
+  "cursor.aiProvider": "anthropic",
+  "cursor.preferredModel": "claude-3-opus",
+  "cursor.remoteExecution": {
+    "enabled": true,
+    "defaultHost": "workhorse@10.0.0.2"
+  }
+}

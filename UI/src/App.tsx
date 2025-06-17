@@ -32,19 +32,41 @@ export function App() {
       
       // Small delay to ensure ready() is processed
       setTimeout(() => {
-        // Debug: Log current state
-        console.log('[DEBUG] Window hash:', window.location.hash);
-        console.log('[DEBUG] Window location:', window.location.href);
-        console.log('[DEBUG] Telegram WebApp:', tg);
-        console.log('[DEBUG] Has tg.initData:', !!tg.initData);
-        console.log('[DEBUG] initData length:', tg.initData?.length || 0);
-        console.log('[DEBUG] initDataUnsafe:', tg.initDataUnsafe);
-        console.log('[DEBUG] WebApp version:', tg.version);
-        console.log('[DEBUG] WebApp platform:', tg.platform);
+        // Debug: Log current state and send to backend
+        const debugInfo = {
+          windowHash: window.location.hash,
+          windowLocation: window.location.href,
+          hasTgObject: !!tg,
+          hasInitData: !!tg.initData,
+          initDataLength: tg.initData?.length || 0,
+          initDataFirst50: tg.initData?.substring(0, 50) || 'none',
+          initDataUnsafe: JSON.stringify(tg.initDataUnsafe || {}),
+          webAppVersion: tg.version,
+          webAppPlatform: tg.platform,
+          timestamp: new Date().toISOString()
+        };
+        
+        console.log('[DEBUG] Full debug info:', debugInfo);
+        
+        // Send debug info to backend
+        fetch('https://t2t2-production.up.railway.app/test-auth-headers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Debug-Info': JSON.stringify(debugInfo),
+            'X-Telegram-Init-Data': tg.initData || 'no-init-data'
+          },
+          body: JSON.stringify({ debugInfo })
+        }).then(res => res.json()).then(data => {
+          console.log('[DEBUG] Test response:', data);
+        }).catch(err => {
+          console.error('[DEBUG] Test failed:', err);
+        });
         
         // Now check for initData
         if (!tg.initData) {
-          setAuthError(`No authentication data available. Please open this app from the Telegram bot.\n\nDebug: Hash=${window.location.hash.substring(0, 50)}...\nVersion: 5.00AM FIXED\nURL: ${window.location.href}\nPlatform: ${tg.platform}\nWebApp Version: ${tg.version}`);
+          const debugStr = JSON.stringify(debugInfo, null, 2);
+          setAuthError(`No authentication data available.\n\nDebug Info:\n${debugStr.substring(0, 400)}...\n\nVersion: 5.30AM DEBUG`);
           return;
         }
         

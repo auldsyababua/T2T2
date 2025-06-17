@@ -107,6 +107,9 @@ async def test_logging():
 @app.post("/test-auth-headers")
 async def test_auth_headers(request: Request):
     """Test endpoint to see what headers are received"""
+    import json
+    from datetime import datetime
+    
     headers_dict = dict(request.headers)
     print(f"[TEST-AUTH] Received headers: {list(headers_dict.keys())}", flush=True)
     
@@ -114,11 +117,26 @@ async def test_auth_headers(request: Request):
     telegram_headers = {k: v for k, v in headers_dict.items() if 'telegram' in k.lower()}
     print(f"[TEST-AUTH] Telegram headers: {telegram_headers}", flush=True)
     
+    # Check for debug info header
+    debug_info_header = headers_dict.get("x-debug-info")
+    if debug_info_header:
+        print(f"[TEST-AUTH] Debug info header: {debug_info_header}", flush=True)
+    
+    # Check request body
+    try:
+        body = await request.json()
+        if body.get("debugInfo"):
+            print(f"[TEST-AUTH] Debug info from body: {json.dumps(body['debugInfo'], indent=2)}", flush=True)
+    except:
+        pass
+    
     return {
         "all_headers": list(headers_dict.keys()),
         "telegram_headers": telegram_headers,
         "x_telegram_init_data": headers_dict.get("x-telegram-init-data"),
-        "X_Telegram_Init_Data": headers_dict.get("X-Telegram-Init-Data")
+        "X_Telegram_Init_Data": headers_dict.get("X-Telegram-Init-Data"),
+        "debug_info_header": headers_dict.get("x-debug-info"),
+        "timestamp": datetime.utcnow().isoformat()
     }
 
 
