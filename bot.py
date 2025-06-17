@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Bot configuration
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8165476295:AAGKAYjWGOPw1XKTnglbDSBWC38Dg0PDjlA")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://t2t2-app.vercel.app")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://t2t2.vercel.app")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")  # Will be Railway URL in production
 
 async def check_authorization(update: Update) -> bool:

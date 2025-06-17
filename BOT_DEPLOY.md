@@ -21,7 +21,7 @@
 ```json
 {
   "TELEGRAM_BOT_TOKEN": "8165476295:AAGKAYjWGOPw1XKTnglbDSBWC38Dg0PDjlA",
-  "WEBAPP_URL": "https://t2t2-app.vercel.app",
+  "WEBAPP_URL": "https://t2t2.vercel.app",
   "BACKEND_URL": "https://t2t2-production.up.railway.app",
   "LOG_LEVEL": "INFO"
 }
