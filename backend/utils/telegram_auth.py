@@ -22,6 +22,7 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str, max_age: int = 8
     """
     import logging
     logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)  # Force debug level
     
     try:
         # Check if init_data is None or empty
@@ -72,8 +73,11 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str, max_age: int = 8
         # Verify hash
         if calculated_hash != received_hash:
             logger.warning(f"[AUTH] Hash mismatch - calculated: {calculated_hash[:20]}..., received: {received_hash[:20]}...")
-            logger.debug(f"[AUTH] Data check string: {data_check_string[:100]}...")
-            logger.debug(f"[AUTH] Bot token last 4 chars: ...{bot_token[-4:]}")
+            logger.warning(f"[AUTH] Full calculated hash: {calculated_hash}")
+            logger.warning(f"[AUTH] Full received hash: {received_hash}")
+            logger.warning(f"[AUTH] Data check string: {data_check_string[:200]}...")
+            logger.warning(f"[AUTH] Bot token last 4 chars: ...{bot_token[-4:]}")
+            logger.warning(f"[AUTH] All parsed params: {list(parsed_data.keys())}")
             return None
         
         # Check auth_date (prevent replay attacks)
