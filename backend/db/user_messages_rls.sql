@@ -48,9 +48,9 @@ CREATE POLICY timelines_policy ON timelines
     FOR ALL
     USING (user_id = current_setting('app.user_id')::bigint);
 
--- Grant necessary permissions to the application role
--- (Adjust the role name as needed for your setup)
-GRANT ALL ON user_messages TO authenticated;
-GRANT ALL ON message_embeddings TO authenticated;
-GRANT ALL ON message_images TO authenticated;
-GRANT ALL ON timelines TO authenticated;
+-- Grant necessary permissions to PUBLIC since Railway doesn't have authenticated role
+-- RLS policies still enforce user isolation so this is safe
+GRANT ALL ON user_messages TO PUBLIC;
+GRANT ALL ON message_embeddings TO PUBLIC;
+GRANT ALL ON message_images TO PUBLIC;
+GRANT ALL ON timelines TO PUBLIC;
