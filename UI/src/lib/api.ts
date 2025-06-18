@@ -1,5 +1,5 @@
 // API service for T2T2 backend integration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://t2t2-production.up.railway.app';
 
 // Types matching our backend models
 export interface Chat {
