@@ -94,6 +94,39 @@ async def health_check():
     return {"status": "healthy"}
 
 
+@app.get("/version")
+async def version_check():
+    """Check deployed version and code status"""
+    import subprocess
+    import os
+    from datetime import datetime
+    
+    try:
+        # Get current git commit
+        commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()[:7]
+    except:
+        commit = "unknown"
+    
+    # Check if auth.py has the fix
+    auth_file_path = os.path.join(os.path.dirname(__file__), "api/routes/auth.py")
+    has_fix = False
+    try:
+        with open(auth_file_path, 'r') as f:
+            content = f.read()
+            # Check line 186 area for the fix
+            if 'User.tg_user_id == telegram_id' in content:
+                has_fix = True
+    except:
+        pass
+    
+    return {
+        "commit": commit,
+        "has_auth_fix": has_fix,
+        "deployment_time": datetime.utcnow().isoformat(),
+        "auth_file_exists": os.path.exists(auth_file_path)
+    }
+
+
 @app.get("/test-logging")
 async def test_logging():
     """Test endpoint to verify logging is working"""
