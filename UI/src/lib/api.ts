@@ -105,10 +105,26 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
   
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (fetchError) {
+    console.error('[API] Fetch failed:', {
+      url,
+      error: fetchError.message,
+      type: fetchError.name,
+      stack: fetchError.stack
+    });
+    
+    // Check if it's a network error
+    if (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('NetworkError')) {
+      throw new Error('Network error - unable to connect to server. Please check your connection.');
+    }
+    throw new Error(`Request failed: ${fetchError.message}`);
+  }
 
   console.log('[API] Response:', {
     status: response.status,
