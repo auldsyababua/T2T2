@@ -135,7 +135,7 @@ Ready to start? Use /auth to connect your account!
         
         # Create QR auth URL
         # Using GitHub Pages for the frontend
-        github_pages_url = "https://auldsyababua.github.io/T2T2/docs/qr-auth.html"
+        github_pages_url = "https://auldsyababua.github.io/T2T2/qr-auth.html"
         server_url = "http://localhost:5000"  # Local server for auth
         
         qr_auth_url = f"{github_pages_url}?session={session_id}&user_id={user_id}&server={server_url}"
