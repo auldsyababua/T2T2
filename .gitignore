@@ -107,3 +107,4 @@ ENV/
 logs/
 modelcontextprotocol-mcp-*.tgz
 .vercel
+config/railway-env-complete.json
