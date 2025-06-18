@@ -42,7 +42,7 @@ async def get_user_chats(
     current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
     """Get all chats available for the authenticated user"""
-    logger.info(f"[CHATS] Request from user: {current_user.username} (ID: {current_user.telegram_id})")
+    logger.info(f"[CHATS] Request from user: {current_user.username} (ID: {current_user.tg_user_id})")
     
     if not current_user.session_file:
         logger.warning(f"[CHATS] User {current_user.username} has no session_file")
