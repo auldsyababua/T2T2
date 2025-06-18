@@ -3,11 +3,12 @@ import { Header } from './components/Header';
 import { ChatSelection } from './components/ChatSelection';
 import { ProcessingScreen } from './components/ProcessingScreen';
 import { AIChat } from './components/AIChat';
-import { initTelegramWebApp } from './lib/api';
+import { PhoneLogin } from './components/PhoneLogin';
 
 export function App() {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [authError, setAuthError] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(0);
   const [selectedChats, setSelectedChats] = useState<string[]>([]);
   const [chatHistory, setChatHistory] = useState([{
@@ -17,79 +18,79 @@ export function App() {
   const [isEditing, setIsEditing] = useState(false);
   
   useEffect(() => {
-    // Wait a bit for Telegram script to fully initialize
-    const initializeApp = () => {
-      const tg = initTelegramWebApp();
+    // Check if user is already authenticated
+    checkAuthStatus();
+  }, []);
+  
+  const checkAuthStatus = async () => {
+    console.log('[APP] Checking auth status');
+    const token = localStorage.getItem('auth_token');
+    
+    if (!token) {
+      console.log('[APP] No auth token found');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://t2t2-production.up.railway.app'}/api/phone-auth/status`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
-      if (!tg) {
-        // Not running inside Telegram
-        setAuthError('This app must be opened from within Telegram');
-        return;
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[APP] Auth status:', data);
+        
+        if (data.authenticated && data.user) {
+          setIsAuthenticated(true);
+          setUser(data.user);
+        } else {
+          // Token invalid, clear it
+          localStorage.removeItem('auth_token');
+        }
+      } else {
+        // Token invalid, clear it
+        localStorage.removeItem('auth_token');
       }
-      
-      // Signal to Telegram that the app is ready FIRST
-      tg.ready();
-      
-      // Small delay to ensure ready() is processed
-      setTimeout(() => {
-        // Debug: Log current state and send to backend
-        const debugInfo = {
-          windowHash: window.location.hash,
-          windowLocation: window.location.href,
-          hasTgObject: !!tg,
-          hasInitData: !!tg.initData,
-          initDataLength: tg.initData?.length || 0,
-          initDataFirst50: tg.initData?.substring(0, 50) || 'none',
-          initDataUnsafe: JSON.stringify(tg.initDataUnsafe || {}),
-          webAppVersion: tg.version,
-          webAppPlatform: tg.platform,
-          timestamp: new Date().toISOString()
-        };
-        
-        console.log('[DEBUG] Full debug info:', debugInfo);
-        
-        // Send debug info to backend
-        fetch('https://t2t2-production.up.railway.app/test-auth-headers', {
+    } catch (error) {
+      console.error('[APP] Auth check error:', error);
+      localStorage.removeItem('auth_token');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleLoginSuccess = (user: any) => {
+    console.log('[APP] Login successful:', user);
+    setIsAuthenticated(true);
+    setUser(user);
+  };
+  
+  const handleLogout = async () => {
+    console.log('[APP] Logging out');
+    
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL || 'https://t2t2-production.up.railway.app'}/api/phone-auth/logout`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'X-Debug-Info': JSON.stringify(debugInfo),
-            'X-Telegram-Init-Data': tg.initData || 'no-init-data'
-          },
-          body: JSON.stringify({ debugInfo })
-        }).then(res => res.json()).then(data => {
-          console.log('[DEBUG] Test response:', data);
-        }).catch(err => {
-          console.error('[DEBUG] Test failed:', err);
+            'Authorization': `Bearer ${token}`
+          }
         });
-        
-        // Now check for initData
-        if (!tg.initData) {
-          const debugStr = JSON.stringify(debugInfo, null, 2);
-          setAuthError(`No authentication data available.\n\nDebug Info:\n${debugStr.substring(0, 400)}...\n\nVersion: 5.30AM DEBUG`);
-          return;
-        }
-        
-        // We have valid Telegram auth data
-        setIsInitialized(true);
-        
-        // Configure Telegram UI
-        tg.expand();
-        tg.MainButton.setText('Continue');
-        tg.BackButton.onClick(() => handleBackStep());
-        
-        // Enable closing confirmation when data is being processed
-        tg.enableClosingConfirmation();
-      }, 100);
-    };
-    
-    // Give Telegram script time to inject data
-    if (document.readyState === 'complete') {
-      initializeApp();
-    } else {
-      window.addEventListener('load', initializeApp);
+      } catch (error) {
+        console.error('[APP] Logout error:', error);
+      }
     }
-  }, []);
+    
+    localStorage.removeItem('auth_token');
+    setIsAuthenticated(false);
+    setUser(null);
+    setStep(0);
+    setSelectedChats([]);
+  };
   
   const handleChatSelect = (chatId: string) => {
     if (selectedChats.includes(chatId)) {
@@ -102,17 +103,6 @@ export function App() {
   const handleNextStep = () => {
     setStep(step + 1);
     setIsEditing(false);
-    
-    // Update Telegram UI
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      if (step === 0) {
-        tg.BackButton.show();
-      }
-      if (step === 1) {
-        tg.MainButton.hide();
-      }
-    }
   };
   
   const handleBackStep = () => {
@@ -122,13 +112,6 @@ export function App() {
     } else {
       setStep(step - 1);
     }
-    
-    // Update Telegram UI
-    const tg = window.Telegram?.WebApp;
-    if (tg && step === 1) {
-      tg.BackButton.hide();
-      tg.MainButton.show();
-    }
   };
   
   const handleEditComplete = () => {
@@ -136,28 +119,24 @@ export function App() {
     setStep(2);
   };
   
-  // Show error if not in Telegram
-  if (authError) {
+  // Show loading while checking auth
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 text-red-700 dark:text-red-400 px-4 py-3 rounded max-w-md">
-          <h2 className="font-bold mb-2">Authentication Error</h2>
-          <p>{authError}</p>
-          <p className="mt-2 text-sm">
-            Please open this app by clicking the "Open App" button in @talk2telegrambot
-          </p>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
         </div>
       </div>
     );
   }
   
-  // Show loading while initializing
-  if (!isInitialized) {
+  // Show login if not authenticated
+  if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Initializing...</p>
+      <div className="flex flex-col w-full min-h-screen bg-[#F5F5F5] dark:bg-[#212121]">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <PhoneLogin onSuccess={handleLoginSuccess} />
         </div>
       </div>
     );
@@ -171,7 +150,9 @@ export function App() {
         onEdit={step === 2 ? () => {
           setIsEditing(true);
           setStep(0);
-        } : undefined} 
+        } : undefined}
+        user={user}
+        onLogout={handleLogout}
       />
       <main className="flex-1 w-full max-w-md mx-auto p-4">
         {step === 0 && (

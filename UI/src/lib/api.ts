@@ -38,53 +38,17 @@ export interface QueryResponse {
   }>;
 }
 
-// Initialize the Telegram Mini App
-export function initTelegramWebApp() {
-  // @ts-ignore
-  if (window.Telegram?.WebApp) {
-    // @ts-ignore
-    const tg = window.Telegram.WebApp;
-    // Don't call ready() here - let the app control when to call it
-    return tg;
-  }
-  return null;
-}
-
-// Get init data for authentication
-export function getTelegramInitData(): string {
-  // @ts-ignore
-  const tg = window.Telegram?.WebApp;
-  const initData = tg?.initData || '';
-  
-  // Debug: Show init data status in error messages
-  if (!tg) {
-    console.error('[API] Telegram WebApp not available');
-    console.error('[API] window.Telegram:', window.Telegram);
-  } else if (!initData) {
-    console.error('[API] No initData from Telegram');
-    console.error('[API] WebApp object:', tg);
-    console.error('[API] WebApp version:', tg.version);
-    console.error('[API] WebApp platform:', tg.platform);
-    // Try to get initDataUnsafe as fallback
-    console.error('[API] initDataUnsafe:', tg.initDataUnsafe);
-  } else {
-    console.log('[API] Got initData, length:', initData.length);
-  }
-  
-  return initData;
-}
+// Phone authentication is now handled through the PhoneLogin component
+// No longer need Telegram Mini App initialization
 
 // API client with auth headers
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
-  const initData = getTelegramInitData();
   const url = `${API_BASE_URL}${endpoint}`;
   
   console.log('[API] Request:', {
     url,
     endpoint,
     method: options.method || 'GET',
-    hasInitData: !!initData,
-    initDataLength: initData.length,
   });
   
   // Get auth token if available
@@ -94,11 +58,6 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
     'Content-Type': 'application/json',
     ...options.headers,
   };
-  
-  // Only add X-Telegram-Init-Data if we have valid initData
-  if (initData) {
-    headers['X-Telegram-Init-Data'] = initData;
-  }
   
   // Add Authorization header if we have a token
   if (authToken) {
@@ -170,39 +129,11 @@ ${JSON.stringify(debug.parsed_params || [])}`;
   return data;
 }
 
-// Authentication handled through Telegram bot - QR login removed
-
-// Authenticate with Telegram Mini App data
-export async function authenticateWithTelegram() {
-  const response = await apiRequest('/api/auth/telegram-webapp-auth', {
-    method: 'POST',
-  });
-  
-  // Store the token for future requests
-  if (response.access_token) {
-    localStorage.setItem('auth_token', response.access_token);
-  }
-  
-  return response;
-}
+// Authentication is now handled through phone number verification
+// See PhoneLogin component for authentication flow
 
 // Get user's chats
 export async function getUserChats(): Promise<Chat[]> {
-  // First ensure we're authenticated
-  const token = localStorage.getItem('auth_token');
-  if (!token) {
-    console.log('[API] No auth token, attempting to authenticate...');
-    try {
-      await authenticateWithTelegram();
-      console.log('[API] Authentication successful');
-    } catch (error) {
-      console.error('[API] Authentication failed:', error);
-      throw new Error(`Authentication failed: ${error.message}`);
-    }
-  } else {
-    console.log('[API] Using existing auth token');
-  }
-  
   return apiRequest('/api/telegram/chats');
 }
 

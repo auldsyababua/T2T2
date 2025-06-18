@@ -40,7 +40,16 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=True, index=True)
     first_name = Column(String(255))
     last_name = Column(String(255))
-    session_file = Column(String(255))  # Path to Telethon session file
+    
+    # Telethon session fields
+    phone_number = Column(String(20), unique=True, nullable=True, index=True)
+    session_string = Column(Text, nullable=True)  # Encrypted Telethon StringSession
+    session_created_at = Column(DateTime, nullable=True)
+    last_auth_at = Column(DateTime, nullable=True)
+    
+    # Legacy field - to be removed after migration
+    session_file = Column(String(255))  # Path to Telethon session file (deprecated)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

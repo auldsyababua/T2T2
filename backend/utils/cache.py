@@ -66,17 +66,17 @@ class Cache:
 
         return self._get_memory(key)
 
-    async def set(self, key: str, value: Any, ttl: int = 60) -> None:
-        """Store *value* under *key* with optional *ttl* (seconds)."""
+    async def set(self, key: str, value: Any, expire: int = 60) -> None:
+        """Store *value* under *key* with optional *expire* (seconds)."""
         if self._redis is not None:
             try:
-                await self._redis.set(key, value, ex=ttl)  # type: ignore[arg-type]
+                await self._redis.set(key, value, ex=expire)  # type: ignore[arg-type]
                 return
             except Exception as exc:  # pragma: no cover
                 logger.warning("Cache: Redis set failed – %s", exc)
                 # fall back to memory
 
-        self._set_memory(key, value, ttl)
+        self._set_memory(key, value, expire)
 
     # ------------------------------------------------------------------
     # Internal helpers – memory backend

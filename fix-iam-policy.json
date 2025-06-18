@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ListBucketPermissions",
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
+            ],
+            "Resource": "arn:aws:s3:::t2t2imagestorage"
+        },
+        {
+            "Sid": "ObjectPermissions",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject",
+                "s3:GetObjectAttributes"
+            ],
+            "Resource": "arn:aws:s3:::t2t2imagestorage/*"
+        }
+    ]
+}

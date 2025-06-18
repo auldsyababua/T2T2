@@ -8,7 +8,7 @@ import requests
 from urllib.parse import quote
 
 # Bot configuration
-BOT_TOKEN = "8165476295:AAGKAYjWGOPw1XKTnglbDSBWC38Dg0PDjlA"
+BOT_TOKEN = "8165476295:AAFyLp4vqtHwFngH5MYDn5eOd2DdibHFGLo"
 BOT_USERNAME = "talk2telegrambot"
 WEBAPP_URL = "https://your-app-domain.com"  # Change this to your deployed URL
 

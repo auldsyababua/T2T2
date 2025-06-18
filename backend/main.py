@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.middleware import RateLimitMiddleware
-from backend.api.routes import auth, query, telegram, timeline
+from backend.api.routes import auth, query, telethon_telegram, timeline, phone_auth
 from backend.db.database import init_db
 from backend.utils.logging import log_api_request, log_api_response, setup_logger
 
@@ -82,7 +82,8 @@ async def log_requests(request: Request, call_next):
 
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-app.include_router(telegram.router, prefix="/api/telegram", tags=["telegram"])
+app.include_router(phone_auth.router, prefix="/api/phone-auth", tags=["phone-auth"])
+app.include_router(telethon_telegram.router, prefix="/api/telegram", tags=["telegram"])
 app.include_router(timeline.router, prefix="/api/timeline", tags=["timeline"])
 app.include_router(query.router, prefix="/api/query", tags=["query"])
 

@@ -97,7 +97,7 @@ Result:
 
 ## Environment Details
 
-- Bot Token: `8165476295:AAGKAYjWGOPw1XKTnglbDSBWC38Dg0PDjlA`
+- Bot Token: `8165476295:AAFyLp4vqtHwFngH5MYDn5eOd2DdibHFGLo`
 - Backend: `https://t2t2-production.up.railway.app`
 - Frontend: `https://t2t2.vercel.app`
 - Bot Username: @talk2telegrambot

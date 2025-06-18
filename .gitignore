@@ -8,10 +8,13 @@ lerna-debug.log*
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.env
+*.env.*
 
 # Production builds
 dist/
@@ -108,3 +111,33 @@ logs/
 modelcontextprotocol-mcp-*.tgz
 .vercel
 config/railway-env-complete.json
+
+# Claude configuration (NEVER commit this!)
+CLAUDE.md
+claude.md
+.claude/
+
+# Config files with credentials (CRITICAL!)
+config/railway-*.json
+config/*.json
+backend/config/authorized_users.py
+
+# Session journals
+*.session-journal
+
+# Encrypted files
+*.enc
+
+# Session files
+*.session
+session_*
+
+# Test scripts with potential credentials
+test_*.py
+admin_auth_tool.py
+*_auth_tool.py
+
+# Logs that might contain sensitive data
+*.log
+qr_server.log
+chat_indexer.log

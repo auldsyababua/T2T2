@@ -16,7 +16,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Bot configuration
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8165476295:AAGKAYjWGOPw1XKTnglbDSBWC38Dg0PDjlA")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8165476295:AAFyLp4vqtHwFngH5MYDn5eOd2DdibHFGLo")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://t2t2-6ptoupqfw-colins-projects-e3e188bc.vercel.app")  # Change this to your deployed URL
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
