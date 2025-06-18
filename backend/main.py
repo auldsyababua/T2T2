@@ -45,7 +45,8 @@ app.add_middleware(
         "http://localhost:5173", 
         "http://localhost:3000",
         "https://t2t2-app.vercel.app",
-        "https://t2t2-*.vercel.app"  # Allow preview deployments
+        "https://t2t2-*.vercel.app",  # Allow preview deployments
+        "https://t2t2.vercel.app"  # Production domain
     ],
     allow_credentials=True,
     allow_methods=["*"],

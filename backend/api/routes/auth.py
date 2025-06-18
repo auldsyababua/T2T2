@@ -183,12 +183,12 @@ async def telegram_webapp_auth(
         raise HTTPException(status_code=403, detail="Not authorized to use this service")
     
     # Get or create user
-    result = await db.execute(select(User).where(User.telegram_id == telegram_id))
+    result = await db.execute(select(User).where(User.tg_user_id == telegram_id))
     user = result.scalar_one_or_none()
     
     if not user:
         user = User(
-            telegram_id=telegram_id,
+            tg_user_id=telegram_id,
             username=username,
             first_name=user_data.get("first_name"),
             last_name=user_data.get("last_name"),
@@ -209,7 +209,7 @@ async def telegram_webapp_auth(
         "token_type": "bearer",
         "user": {
             "id": str(user.id),
-            "telegram_id": user.telegram_id,
+            "telegram_id": user.tg_user_id,
             "username": user.username,
             "first_name": user.first_name,
             "last_name": user.last_name,
@@ -302,7 +302,7 @@ async def get_current_user(
             logger.warning(f"[AUTH] User not found in DB: {user_id}")
             raise HTTPException(status_code=401, detail="User not found")
 
-        logger.info(f"[AUTH] User authenticated: {user.username} (ID: {user.telegram_id})")
+        logger.info(f"[AUTH] User authenticated: {user.username} (ID: {user.tg_user_id})")
         return user
 
     except jwt.ExpiredSignatureError:

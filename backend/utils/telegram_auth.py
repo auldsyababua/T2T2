@@ -49,7 +49,8 @@ def verify_telegram_webapp_data(init_data: str, bot_token: str, max_age: int = 8
                 parsed_data[key] = value
                 data_check_string_parts.append(f"{key}={value}")
         
-        if 'hash' not in locals():
+        # Ensure we captured the received hash
+        if 'received_hash' not in locals():
             return None
         
         # Sort and create data check string

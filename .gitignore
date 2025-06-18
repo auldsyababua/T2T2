@@ -106,3 +106,4 @@ ENV/
 .scratch/
 logs/
 modelcontextprotocol-mcp-*.tgz
+.vercel
