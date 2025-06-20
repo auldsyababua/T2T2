@@ -1,8 +1,0 @@
-{
-  "name": "t2t2-api",
-  "version": "1.0.0",
-  "description": "T2T2 API endpoints",
-  "scripts": {
-    "build": "echo 'No build needed for API endpoints'"
-  }
-}
