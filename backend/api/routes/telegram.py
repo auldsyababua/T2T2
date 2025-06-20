@@ -11,9 +11,13 @@ from backend.api.routes.auth import get_current_user
 from backend.db.database import get_db
 from backend.models.models import User
 from backend.services.embedding_service import EmbeddingService
-
-# from backend.services.image_service import ImageService  # Temporarily disabled
 from backend.services.telegram_service import TelegramService
+
+# Import ImageService only if needed
+try:
+    from backend.services.image_service import ImageService
+except ImportError:
+    ImageService = None
 from backend.utils.cache import cache
 from backend.utils.logging import setup_logger
 
@@ -118,7 +122,7 @@ async def index_chats_task(
 
         # Initialize image service for media handling
         image_service = None
-        if all(
+        if ImageService and all(
             [
                 os.getenv("AWS_ACCESS_KEY_ID"),
                 os.getenv("AWS_SECRET_ACCESS_KEY"),

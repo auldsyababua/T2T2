@@ -2,9 +2,11 @@
 UI/
 UI/**
 
-# Ignore Supabase functions (Deno)
+# Ignore Supabase functions (Deno/Bun)
 supabase/
 supabase/**
+supabase/functions/
+supabase/functions/**
 
 # Ignore test files
 tests/

@@ -7,7 +7,6 @@ import os
 import logging
 from typing import Optional
 from supabase import create_client, Client
-import httpx
 
 logger = logging.getLogger(__name__)
 

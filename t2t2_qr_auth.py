@@ -283,16 +283,23 @@ class QRAuthManager:
     async def initialize_bot(self):
         """Initialize the bot client for handling updates"""
         if not self.bot_client:
-            self.bot_client = TelegramClient(
-                "qr_auth_bot", TELEGRAM_API_ID, TELEGRAM_API_HASH
-            )
-            await self.bot_client.start(bot_token=TELEGRAM_BOT_TOKEN)
+            try:
+                # Use StringSession to avoid filesystem writes
+                self.bot_client = TelegramClient(
+                    StringSession(), TELEGRAM_API_ID, TELEGRAM_API_HASH
+                )
+                await self.bot_client.start(bot_token=TELEGRAM_BOT_TOKEN)
+                logger.info("Bot client initialized successfully")
 
-            # Listen for login token updates
-            @self.bot_client.on(events.Raw)
-            async def handle_update(update):
-                if hasattr(update, "login_token"):
-                    await self.handle_login_update(update)
+                # Listen for login token updates
+                @self.bot_client.on(events.Raw)
+                async def handle_update(update):
+                    if hasattr(update, "login_token"):
+                        await self.handle_login_update(update)
+            except Exception as e:
+                logger.error(f"Failed to initialize bot client: {e}")
+                logger.warning("Server will run in degraded mode without QR auth")
+                # Don't re-raise - allow server to start
 
     async def create_qr_session(self, user_id: str, session_id: str):
         """Create a new QR authentication session"""
@@ -392,8 +399,7 @@ class QRAuthManager:
                     # If we can get dialogs, we're authenticated!
                     session["authenticated"] = True
 
-                    # Get user info
-                    me = await client.get_me()
+                    # Authentication successful
 
                     # Save session to database
                     session_string = client.session.save()
@@ -522,8 +528,8 @@ async def cleanup_expired_sessions():
         for session_id in expired:
             try:
                 await QR_SESSIONS[session_id]["client"].disconnect()
-            except:
-                pass
+            except Exception as e:
+                logger.debug(f"Error disconnecting session {session_id}: {e}")
             del QR_SESSIONS[session_id]
 
         await asyncio.sleep(60)  # Check every minute
@@ -538,8 +544,12 @@ def run_server():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    # Initialize bot
-    loop.run_until_complete(qr_manager.initialize_bot())
+    # Initialize bot (don't fail if it errors)
+    try:
+        loop.run_until_complete(qr_manager.initialize_bot())
+    except Exception as e:
+        logger.error(f"Bot initialization failed: {e}")
+        logger.warning("Starting server without QR authentication support")
 
     # Start cleanup task
     loop.create_task(cleanup_expired_sessions())
