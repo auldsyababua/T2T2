@@ -134,12 +134,9 @@ Ready to start? Use /auth to connect your account!
         session_id = secrets.token_urlsafe(16)
         
         # Create QR auth URL
-        # For testing, use local URL. For production, use GitHub Pages
-        local_url = f"http://localhost:5000/auth?session={session_id}&user_id={user_id}"
-        github_pages_url = "https://auldsyababua.github.io/T2T2/qr-auth.html"
-        
-        # Use local URL for now
-        qr_auth_url = local_url
+        # Using Vercel deployment
+        vercel_url = "https://t2t2-app.vercel.app"  # Update this with your actual Vercel URL
+        qr_auth_url = f"{vercel_url}/api/qr_auth?session={session_id}&user_id={user_id}"
         
         await update.message.reply_text(
             "📱 Let's authenticate your Telegram account.\n\n"
