@@ -1,0 +1,30 @@
+# Ignore UI directory (not needed for Python server)
+UI/
+UI/**
+
+# Ignore test files
+tests/
+*.test.py
+*_test.py
+
+# Ignore development files
+.scratch/
+docs/
+*.md
+
+# Ignore version control
+.git/
+.gitignore
+
+# Ignore environment files (Railway provides these)
+.env*
+
+# Ignore archived files
+*.backup
+archive/
+
+# Ignore package files not needed for Python
+package.json
+package-lock.json
+node_modules/
+vercel.json

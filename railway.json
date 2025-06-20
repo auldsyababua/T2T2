@@ -6,9 +6,14 @@
       "phases": {
         "setup": {
           "nixPkgs": ["python39", "gcc"]
+        },
+        "install": {
+          "cmds": ["pip install -r requirements.txt"]
         }
-      }
-    }
+      },
+      "providers": ["python"]
+    },
+    "watchPatterns": ["**/*.py", "requirements.txt", "railway.json"]
   },
   "deploy": {
     "numReplicas": 1,
