@@ -21,7 +21,7 @@ class EmbeddingService:
 
         self.client = AsyncOpenAI(api_key=openai_api_key)
         self.model = "text-embedding-3-large"
-        
+
         # Use smart chunking service instead of simple text splitter
         self.chunking_service = SmartChunkingService()
 

@@ -15,18 +15,19 @@ webapp_url = sys.argv[1]
 
 # Update bot.py
 bot_file = "bot.py"
-with open(bot_file, 'r') as f:
+with open(bot_file, "r") as f:
     content = f.read()
 
 # Replace the WEBAPP_URL line
 import re
+
 content = re.sub(
     r'WEBAPP_URL = os\.getenv\("WEBAPP_URL", "[^"]+"\)',
     f'WEBAPP_URL = os.getenv("WEBAPP_URL", "{webapp_url}")',
-    content
+    content,
 )
 
-with open(bot_file, 'w') as f:
+with open(bot_file, "w") as f:
     f.write(content)
 
 print(f"✅ Updated bot.py with webapp URL: {webapp_url}")

@@ -6,17 +6,15 @@ Provides secure authentication via QR codes - no passwords needed!
 
 import asyncio
 import os
-import secrets
 import base64
 from datetime import datetime, timedelta
-from typing import Dict, Optional
 import qrcode
 import io
-from flask import Flask, render_template_string, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
-from telethon.tl.functions.auth import ExportLoginTokenRequest, ImportLoginTokenRequest
+from telethon.tl.functions.auth import ExportLoginTokenRequest
 from telethon.tl.types import auth
 from supabase import create_client
 from dotenv import load_dotenv
@@ -43,7 +41,7 @@ logger = logging.getLogger(__name__)
 QR_SESSIONS = {}  # session_id -> {client, token, expires, user_id}
 
 # HTML template for QR auth page
-QR_AUTH_PAGE = '''
+QR_AUTH_PAGE = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -275,28 +273,27 @@ QR_AUTH_PAGE = '''
     </script>
 </body>
 </html>
-'''
+"""
+
 
 class QRAuthManager:
     def __init__(self):
         self.bot_client = None
-        
+
     async def initialize_bot(self):
         """Initialize the bot client for handling updates"""
         if not self.bot_client:
             self.bot_client = TelegramClient(
-                'qr_auth_bot',
-                TELEGRAM_API_ID,
-                TELEGRAM_API_HASH
+                "qr_auth_bot", TELEGRAM_API_ID, TELEGRAM_API_HASH
             )
             await self.bot_client.start(bot_token=TELEGRAM_BOT_TOKEN)
-            
+
             # Listen for login token updates
             @self.bot_client.on(events.Raw)
             async def handle_update(update):
-                if hasattr(update, 'login_token'):
+                if hasattr(update, "login_token"):
                     await self.handle_login_update(update)
-    
+
     async def create_qr_session(self, user_id: str, session_id: str):
         """Create a new QR authentication session"""
         try:
@@ -307,23 +304,27 @@ class QRAuthManager:
                 TELEGRAM_API_HASH,
                 device_model="T2T2 QR Auth",
                 system_version="1.0",
-                app_version="1.0"
+                app_version="1.0",
             )
-            
+
             await client.connect()
-            
+
             # Export login token
-            result = await client(ExportLoginTokenRequest(
-                api_id=TELEGRAM_API_ID,
-                api_hash=TELEGRAM_API_HASH,
-                except_ids=[]  # Don't exclude any accounts
-            ))
-            
+            result = await client(
+                ExportLoginTokenRequest(
+                    api_id=TELEGRAM_API_ID,
+                    api_hash=TELEGRAM_API_HASH,
+                    except_ids=[],  # Don't exclude any accounts
+                )
+            )
+
             if isinstance(result, auth.LoginToken):
                 # Encode token for QR
                 token_bytes = result.token
-                token_b64 = base64.urlsafe_b64encode(token_bytes).decode('utf-8').rstrip('=')
-                
+                token_b64 = (
+                    base64.urlsafe_b64encode(token_bytes).decode("utf-8").rstrip("=")
+                )
+
                 # Create QR code
                 qr = qrcode.QRCode(
                     version=None,
@@ -333,199 +334,223 @@ class QRAuthManager:
                 )
                 qr.add_data(f"tg://login?token={token_b64}")
                 qr.make(fit=True)
-                
+
                 # Generate QR image
                 img = qr.make_image(fill_color="black", back_color="white")
-                
+
                 # Convert to base64 for embedding
                 buf = io.BytesIO()
-                img.save(buf, format='PNG')
+                img.save(buf, format="PNG")
                 buf.seek(0)
-                img_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
-                
+                img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+
                 # Store session
                 QR_SESSIONS[session_id] = {
-                    'client': client,
-                    'token': result,
-                    'token_b64': token_b64,
-                    'qr_data': f"data:image/png;base64,{img_b64}",
-                    'expires': datetime.now() + timedelta(seconds=result.expires.timestamp() - datetime.now().timestamp()),
-                    'user_id': user_id,
-                    'authenticated': False
+                    "client": client,
+                    "token": result,
+                    "token_b64": token_b64,
+                    "qr_data": f"data:image/png;base64,{img_b64}",
+                    "expires": datetime.now()
+                    + timedelta(
+                        seconds=result.expires.timestamp() - datetime.now().timestamp()
+                    ),
+                    "user_id": user_id,
+                    "authenticated": False,
                 }
-                
+
                 logger.info(f"Created QR session {session_id} for user {user_id}")
-                
+
                 # Start checking for authentication
                 asyncio.create_task(self.check_authentication(session_id))
-                
+
                 return True
             else:
                 logger.error(f"Unexpected result type: {type(result)}")
                 await client.disconnect()
                 return False
-                
+
         except Exception as e:
             logger.error(f"Failed to create QR session: {e}")
             return False
-    
+
     async def check_authentication(self, session_id: str):
         """Check if the QR code has been scanned and authenticated"""
         session = QR_SESSIONS.get(session_id)
         if not session:
             return
-        
-        client = session['client']
+
+        client = session["client"]
         max_attempts = 30  # Check for 30 seconds
-        
+
         for _ in range(max_attempts):
             if session_id not in QR_SESSIONS:
                 break
-                
+
             try:
                 # Check if authenticated by trying to get dialogs
                 async for dialog in client.iter_dialogs(limit=1):
                     # If we can get dialogs, we're authenticated!
-                    session['authenticated'] = True
-                    
+                    session["authenticated"] = True
+
                     # Get user info
                     me = await client.get_me()
-                    
+
                     # Save session to database
                     session_string = client.session.save()
-                    
-                    supabase.table('user_sessions').upsert({
-                        'user_id': session['user_id'],
-                        'session_string': session_string,
-                        'monitored_chats': [],
-                        'created_at': datetime.now().isoformat()
-                    }).execute()
-                    
+
+                    supabase.table("user_sessions").upsert(
+                        {
+                            "user_id": session["user_id"],
+                            "session_string": session_string,
+                            "monitored_chats": [],
+                            "created_at": datetime.now().isoformat(),
+                        }
+                    ).execute()
+
                     # Update pending auth if exists
-                    supabase.table('pending_authentications').update({
-                        'status': 'completed',
-                        'completed_at': datetime.now().isoformat()
-                    }).eq('user_id', session['user_id']).eq('status', 'pending').execute()
-                    
-                    logger.info(f"User {session['user_id']} authenticated successfully via QR")
-                    
+                    supabase.table("pending_authentications").update(
+                        {
+                            "status": "completed",
+                            "completed_at": datetime.now().isoformat(),
+                        }
+                    ).eq("user_id", session["user_id"]).eq(
+                        "status", "pending"
+                    ).execute()
+
+                    logger.info(
+                        f"User {session['user_id']} authenticated successfully via QR"
+                    )
+
                     # Clean up
                     await client.disconnect()
                     break
-                    
-            except Exception as e:
+
+            except Exception:
                 # Not authenticated yet, keep checking
                 pass
-            
+
             await asyncio.sleep(1)
-        
+
         # Clean up if not authenticated
-        if session_id in QR_SESSIONS and not QR_SESSIONS[session_id]['authenticated']:
-            client = QR_SESSIONS[session_id]['client']
+        if session_id in QR_SESSIONS and not QR_SESSIONS[session_id]["authenticated"]:
+            client = QR_SESSIONS[session_id]["client"]
             await client.disconnect()
             del QR_SESSIONS[session_id]
+
 
 # Initialize manager
 qr_manager = QRAuthManager()
 
-@app.route('/')
+
+@app.route("/")
 def index():
     return QR_AUTH_PAGE
 
-@app.route('/health')
+
+@app.route("/health")
 def health():
     """Health check endpoint"""
-    return jsonify({'status': 'ok', 'service': 'T2T2 QR Auth'})
+    return jsonify({"status": "ok", "service": "T2T2 QR Auth"})
 
-@app.route('/qr/<session_id>')
+
+@app.route("/qr/<session_id>")
 async def get_qr(session_id):
     """Get QR code for session"""
     session = QR_SESSIONS.get(session_id)
-    
+
     if not session:
         # Try to create it
-        user_id = request.args.get('user_id')
+        user_id = request.args.get("user_id")
         if user_id:
             success = await qr_manager.create_qr_session(user_id, session_id)
             if success:
                 session = QR_SESSIONS.get(session_id)
             else:
-                return jsonify({'error': 'Failed to generate QR code'}), 500
+                return jsonify({"error": "Failed to generate QR code"}), 500
         else:
-            return jsonify({'error': 'Session not found'}), 404
-    
-    if session and not session['authenticated']:
-        # Check if expired
-        if datetime.now() > session['expires']:
-            # Clean up
-            await session['client'].disconnect()
-            del QR_SESSIONS[session_id]
-            return jsonify({'error': 'QR code expired', 'expired': True}), 410
-        
-        return jsonify({
-            'qr_code': session['qr_data'],
-            'expires_in': int((session['expires'] - datetime.now()).total_seconds())
-        })
-    elif session and session['authenticated']:
-        return jsonify({'authenticated': True})
-    else:
-        return jsonify({'error': 'Session not found'}), 404
+            return jsonify({"error": "Session not found"}), 404
 
-@app.route('/check_auth/<session_id>')
+    if session and not session["authenticated"]:
+        # Check if expired
+        if datetime.now() > session["expires"]:
+            # Clean up
+            await session["client"].disconnect()
+            del QR_SESSIONS[session_id]
+            return jsonify({"error": "QR code expired", "expired": True}), 410
+
+        return jsonify(
+            {
+                "qr_code": session["qr_data"],
+                "expires_in": int(
+                    (session["expires"] - datetime.now()).total_seconds()
+                ),
+            }
+        )
+    elif session and session["authenticated"]:
+        return jsonify({"authenticated": True})
+    else:
+        return jsonify({"error": "Session not found"}), 404
+
+
+@app.route("/check_auth/<session_id>")
 def check_auth(session_id):
     """Check if session is authenticated"""
     session = QR_SESSIONS.get(session_id)
-    
+
     if not session:
-        return jsonify({'error': 'Session not found', 'expired': True}), 404
-    
-    if session['authenticated']:
-        return jsonify({'authenticated': True})
-    
-    if datetime.now() > session['expires']:
-        return jsonify({'expired': True})
-    
-    return jsonify({'authenticated': False})
+        return jsonify({"error": "Session not found", "expired": True}), 404
+
+    if session["authenticated"]:
+        return jsonify({"authenticated": True})
+
+    if datetime.now() > session["expires"]:
+        return jsonify({"expired": True})
+
+    return jsonify({"authenticated": False})
+
 
 async def cleanup_expired_sessions():
     """Clean up expired sessions periodically"""
     while True:
         now = datetime.now()
         expired = []
-        
+
         for session_id, session in QR_SESSIONS.items():
-            if now > session['expires'] and not session['authenticated']:
+            if now > session["expires"] and not session["authenticated"]:
                 expired.append(session_id)
-        
+
         for session_id in expired:
             try:
-                await QR_SESSIONS[session_id]['client'].disconnect()
+                await QR_SESSIONS[session_id]["client"].disconnect()
             except:
                 pass
             del QR_SESSIONS[session_id]
-        
+
         await asyncio.sleep(60)  # Check every minute
+
 
 def run_server():
     """Run the Flask server with asyncio support"""
     import nest_asyncio
+
     nest_asyncio.apply()
-    
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    
+
     # Initialize bot
     loop.run_until_complete(qr_manager.initialize_bot())
-    
+
     # Start cleanup task
     loop.create_task(cleanup_expired_sessions())
-    
-    # Run Flask with Railway PORT
-    port = int(os.getenv('PORT', '5000'))
-    logger.info(f"Starting T2T2 QR Auth Server on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
-if __name__ == '__main__':
+    # Run Flask with Railway PORT
+    port = int(os.getenv("PORT", "5000"))
+    logger.info(f"Starting T2T2 QR Auth Server on port {port}")
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
+
+
+if __name__ == "__main__":
     print("🚀 T2T2 QR Authentication Server")
     print(f"📍 Starting on port {os.getenv('PORT', '5000')}")
     print("\nThis provides secure QR code authentication - no passwords needed!")
@@ -533,5 +558,5 @@ if __name__ == '__main__':
     print("1. Click a link from the bot")
     print("2. Scan QR code with Telegram")
     print("3. Get authenticated automatically")
-    
+
     run_server()

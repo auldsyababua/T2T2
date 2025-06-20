@@ -5,14 +5,14 @@ import os
 from dotenv import load_dotenv
 
 # Load environment
-load_dotenv('.env.supabase_bot')
+load_dotenv(".env.supabase_bot")
 
 key = os.getenv("SUPABASE_SERVICE_KEY", "")
 
 print("🔍 Supabase API Key Verification")
 print("=" * 50)
 
-print(f"\n1. Key Analysis:")
+print("\n1. Key Analysis:")
 print(f"   Length: {len(key)} characters")
 print(f"   Prefix: {key[:15] if key else 'N/A'}...")
 print(f"   Last 4: ...{key[-4:] if len(key) > 4 else 'N/A'}")
@@ -20,14 +20,14 @@ print(f"   Last 4: ...{key[-4:] if len(key) > 4 else 'N/A'}")
 # Check key format
 if key.startswith("sb_secret_"):
     print("   ✅ Has correct prefix (sb_secret_)")
-    
+
     # Typical sb_secret_ keys are around 223 characters
     if len(key) < 100:
         print(f"   ❌ Key appears incomplete (expected ~223 chars, got {len(key)})")
         print("   ⚠️  The key may have been truncated during copy/paste")
     else:
         print("   ✅ Key length seems reasonable")
-        
+
 elif key.startswith("eyJ"):
     print("   ⚠️  Legacy JWT format detected")
     print("   ℹ️  You may need to generate new API keys in Supabase dashboard")

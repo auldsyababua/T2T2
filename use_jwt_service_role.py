@@ -5,10 +5,9 @@ Test using the JWT-based service_role key instead of sb_secret_
 
 import os
 from dotenv import load_dotenv
-from supabase import create_client
 
 # Load environment
-load_dotenv('.env.supabase_bot')
+load_dotenv(".env.supabase_bot")
 
 url = os.getenv("SUPABASE_URL", "")
 
@@ -32,4 +31,6 @@ print("- Don't use the JWT Secret from Configuration -> Data API")
 print("- That's for signing JWTs, not for API access")
 print("- You need the service_role key from Settings -> API")
 
-print("\nOnce you have the correct key, update SUPABASE_SERVICE_KEY in .env.supabase_bot")
+print(
+    "\nOnce you have the correct key, update SUPABASE_SERVICE_KEY in .env.supabase_bot"
+)

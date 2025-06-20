@@ -22,7 +22,7 @@ security = HTTPBearer()
 
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> Optional[User]:
     """
     Get current authenticated user from JWT token.
@@ -30,40 +30,38 @@ async def get_current_user(
     """
     if not credentials:
         return None
-    
+
     token = credentials.credentials
-    
+
     # Decode JWT token
     payload = decode_access_token(token)
-    
+
     if not payload:
         logger.warning("[DEPENDENCIES] Invalid or expired token")
         return None
-    
+
     user_id: str = payload.get("sub")
-    
+
     if user_id is None:
         logger.warning("[DEPENDENCIES] Token missing user ID")
         return None
-    
+
     logger.info(f"[DEPENDENCIES] Token decoded for user {user_id}")
-    
+
     # Get user from database
-    result = await db.execute(
-        select(User).where(User.id == int(user_id))
-    )
+    result = await db.execute(select(User).where(User.id == int(user_id)))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         logger.warning(f"[DEPENDENCIES] User {user_id} not found in database")
         return None
-    
+
     logger.info(f"[DEPENDENCIES] Authenticated user {user.id}")
     return user
 
 
 async def require_current_user(
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user),
 ) -> User:
     """
     Require authenticated user (for protected endpoints).
@@ -76,5 +74,5 @@ async def require_current_user(
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     return current_user

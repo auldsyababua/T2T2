@@ -5,12 +5,14 @@ import os
 
 PORT = 8081
 
+
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         # Add CORS headers for Telegram
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('X-Frame-Options', 'ALLOWALL')
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("X-Frame-Options", "ALLOWALL")
         super().end_headers()
+
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 

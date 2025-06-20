@@ -24,6 +24,7 @@ from backend.models.models import (
     User as DBUser,
 )
 from backend.services.embedding_service import EmbeddingService
+
 # from backend.services.image_service import ImageService  # Temporarily disabled
 from backend.utils.cache import cache
 from backend.utils.logging import setup_logger

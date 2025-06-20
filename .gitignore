@@ -141,3 +141,43 @@ admin_auth_tool.py
 *.log
 qr_server.log
 chat_indexer.log
+# Local configuration files (not committed)
+*.local.toml
+.ruff.local.toml
+.black.local.toml
+pyproject.local.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Testing
+.coverage
+.pytest_cache/
+.hypothesis/
+htmlcov/
+.tox/
+.nox/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+.pyre/
+
+# IDEs
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Git hooks
+.git/hooks/pre-commit

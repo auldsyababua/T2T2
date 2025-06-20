@@ -1,0 +1,81 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    // Security Rules
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "no-with": "error",
+    
+    // Complexity Rules
+    "complexity": ["error", 10],
+    "max-depth": ["error", 4],
+    "max-lines": ["error", {
+      "max": 300,
+      "skipBlankLines": true,
+      "skipComments": true
+    }],
+    "max-lines-per-function": ["error", {
+      "max": 50,
+      "skipBlankLines": true,
+      "skipComments": true
+    }],
+    "max-nested-callbacks": ["error", 3],
+    "max-params": ["error", 4],
+    "max-statements": ["error", 15],
+    
+    // Performance Rules
+    "no-await-in-loop": "error",
+    "no-constant-binary-expression": "error",
+    "no-constructor-return": "error",
+    "no-promise-executor-return": "error",
+    "no-unreachable-loop": "error",
+    "no-unused-private-class-members": "error",
+    "prefer-object-has-own": "error",
+    "require-atomic-updates": "error",
+    
+    // Code Quality
+    "no-alert": "error",
+    "no-console": ["warn", {
+      "allow": ["warn", "error", "info"]
+    }],
+    "no-debugger": "error",
+    "no-duplicate-imports": "error",
+    "no-empty": ["error", {
+      "allowEmptyCatch": false
+    }],
+    "no-lonely-if": "error",
+    "no-nested-ternary": "error",
+    "no-unneeded-ternary": "error",
+    "no-useless-computed-key": "error",
+    "no-useless-rename": "error",
+    "no-var": "error",
+    "prefer-arrow-callback": "error",
+    "prefer-const": "error",
+    "prefer-destructuring": ["error", {
+      "array": true,
+      "object": true
+    }],
+    "prefer-template": "error",
+    "yoda": "error"
+  },
+  "overrides": [
+    {
+      "files": ["*.test.js", "*.test.ts", "*.spec.js", "*.spec.ts"],
+      "rules": {
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-statements": "off"
+      }
+    }
+  ]
+}

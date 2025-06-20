@@ -6,10 +6,17 @@ import subprocess
 import sys
 
 # Start the backend
-subprocess.run([
-    sys.executable, "-m", "uvicorn", 
-    "main:app", 
-    "--reload", 
-    "--host", "0.0.0.0", 
-    "--port", "8000"
-], cwd="backend")
+subprocess.run(
+    [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "main:app",
+        "--reload",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+    ],
+    cwd="backend",
+)

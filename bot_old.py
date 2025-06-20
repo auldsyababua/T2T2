@@ -10,28 +10,33 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 
 # Enable logging
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
 # Bot configuration
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8165476295:AAFyLp4vqtHwFngH5MYDn5eOd2DdibHFGLo")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://t2t2-6ptoupqfw-colins-projects-e3e188bc.vercel.app")  # Change this to your deployed URL
+BOT_TOKEN = os.getenv(
+    "TELEGRAM_BOT_TOKEN", "8165476295:AAFyLp4vqtHwFngH5MYDn5eOd2DdibHFGLo"
+)
+WEBAPP_URL = os.getenv(
+    "WEBAPP_URL", "https://t2t2-6ptoupqfw-colins-projects-e3e188bc.vercel.app"
+)  # Change this to your deployed URL
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message with a button to open the Mini App"""
     user = update.effective_user
-    
+
     # Create keyboard with Web App button
     keyboard = [
-        [InlineKeyboardButton(
-            text="🚀 Open T2T2 App", 
-            web_app=WebAppInfo(url=WEBAPP_URL)
-        )]
+        [
+            InlineKeyboardButton(
+                text="🚀 Open T2T2 App", web_app=WebAppInfo(url=WEBAPP_URL)
+            )
+        ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     welcome_text = f"""
 👋 Welcome {user.first_name}!
 
@@ -45,11 +50,9 @@ I can help you:
 
 Click the button below to open the app and get started!
 """
-    
-    await update.message.reply_text(
-        welcome_text,
-        reply_markup=reply_markup
-    )
+
+    await update.message.reply_text(welcome_text, reply_markup=reply_markup)
+
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
@@ -79,23 +82,25 @@ Your messages are processed securely and are only accessible to you. We use end-
 
 Need more help? Contact @your_support_username
 """
-    
-    await update.message.reply_text(help_text, parse_mode='Markdown')
+
+    await update.message.reply_text(help_text, parse_mode="Markdown")
+
 
 async def app_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the Mini App button"""
     keyboard = [
-        [InlineKeyboardButton(
-            text="🚀 Open T2T2 App", 
-            web_app=WebAppInfo(url=WEBAPP_URL)
-        )]
+        [
+            InlineKeyboardButton(
+                text="🚀 Open T2T2 App", web_app=WebAppInfo(url=WEBAPP_URL)
+            )
+        ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.message.reply_text(
-        "Click below to open T2T2:",
-        reply_markup=reply_markup
+        "Click below to open T2T2:", reply_markup=reply_markup
     )
+
 
 def main() -> None:
     """Start the bot."""
@@ -110,5 +115,6 @@ def main() -> None:
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

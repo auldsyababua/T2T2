@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from supabase import create_client
 
 # Load environment
-load_dotenv('.env.supabase_bot')
+load_dotenv(".env.supabase_bot")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
@@ -53,7 +53,7 @@ create table if not exists authorized_users (
 
 try:
     # Execute SQL
-    result = supabase.rpc('exec_sql', {'query': setup_sql}).execute()
+    result = supabase.rpc("exec_sql", {"query": setup_sql}).execute()
     print("✅ Tables created successfully!")
 except Exception as e:
     if "documents" in str(e):

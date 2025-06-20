@@ -4,18 +4,17 @@ T2T2 Web-Based Authentication Server
 Provides a secure way to authenticate without sending codes through Telegram
 """
 
-import asyncio
 import os
 import secrets
 from datetime import datetime, timedelta
-from flask import Flask, render_template_string, request, jsonify
+from flask import Flask, request, jsonify
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 from supabase import create_client
 from dotenv import load_dotenv
 import logging
 
-load_dotenv('.env.supabase_bot')
+load_dotenv(".env.supabase_bot")
 
 # Configuration
 TELEGRAM_API_ID = int(os.getenv("TELEGRAM_API_ID", "0"))
@@ -32,7 +31,7 @@ logging.basicConfig(level=logging.INFO)
 AUTH_SESSIONS = {}  # token -> {user_id, client, phone, phone_code_hash, expires}
 
 # HTML template for auth page
-AUTH_PAGE = '''
+AUTH_PAGE = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -210,29 +209,32 @@ AUTH_PAGE = '''
     </script>
 </body>
 </html>
-'''
+"""
 
-@app.route('/')
+
+@app.route("/")
 def index():
     return AUTH_PAGE
 
-@app.route('/auth/<token>')
+
+@app.route("/auth/<token>")
 def auth_page(token):
     if token not in AUTH_SESSIONS:
         return "Invalid or expired link", 404
     return AUTH_PAGE
 
-@app.route('/send_code', methods=['POST'])
+
+@app.route("/send_code", methods=["POST"])
 async def send_code():
     data = request.json
-    token = data.get('token')
-    phone = data.get('phone')
-    
+    token = data.get("token")
+    phone = data.get("phone")
+
     if token not in AUTH_SESSIONS:
-        return jsonify({'success': False, 'error': 'Invalid token'})
-    
+        return jsonify({"success": False, "error": "Invalid token"})
+
     session = AUTH_SESSIONS[token]
-    
+
     try:
         client = TelegramClient(
             StringSession(),
@@ -240,99 +242,108 @@ async def send_code():
             TELEGRAM_API_HASH,
             device_model="T2T2 Web Auth",
             system_version="1.0",
-            app_version="1.0"
+            app_version="1.0",
         )
-        
+
         await client.connect()
         result = await client.send_code_request(phone)
-        
+
         # Update session
-        session['client'] = client
-        session['phone'] = phone
-        session['phone_code_hash'] = result.phone_code_hash
-        
-        return jsonify({'success': True})
-        
+        session["client"] = client
+        session["phone"] = phone
+        session["phone_code_hash"] = result.phone_code_hash
+
+        return jsonify({"success": True})
+
     except Exception as e:
         logging.error(f"Send code error: {e}")
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({"success": False, "error": str(e)})
 
-@app.route('/verify_code', methods=['POST'])
+
+@app.route("/verify_code", methods=["POST"])
 async def verify_code():
     data = request.json
-    token = data.get('token')
-    code = data.get('code')
-    user_id = data.get('user_id')
-    
+    token = data.get("token")
+    code = data.get("code")
+    user_id = data.get("user_id")
+
     if token not in AUTH_SESSIONS:
-        return jsonify({'success': False, 'error': 'Invalid token'})
-    
+        return jsonify({"success": False, "error": "Invalid token"})
+
     session = AUTH_SESSIONS[token]
-    client = session.get('client')
-    
+    client = session.get("client")
+
     if not client:
-        return jsonify({'success': False, 'error': 'No active session'})
-    
+        return jsonify({"success": False, "error": "No active session"})
+
     try:
         await client.sign_in(
-            phone=session['phone'],
+            phone=session["phone"],
             code=code,
-            phone_code_hash=session['phone_code_hash']
+            phone_code_hash=session["phone_code_hash"],
         )
-        
+
         # Save session
         session_string = client.session.save()
-        
+
         # Store in database
-        supabase.table('user_sessions').upsert({
-            'user_id': user_id,
-            'session_string': session_string,
-            'monitored_chats': [],
-            'created_at': datetime.now().isoformat()
-        }).execute()
-        
+        supabase.table("user_sessions").upsert(
+            {
+                "user_id": user_id,
+                "session_string": session_string,
+                "monitored_chats": [],
+                "created_at": datetime.now().isoformat(),
+            }
+        ).execute()
+
         # Clean up
         await client.disconnect()
         del AUTH_SESSIONS[token]
-        
-        return jsonify({'success': True})
-        
+
+        return jsonify({"success": True})
+
     except Exception as e:
         logging.error(f"Verify code error: {e}")
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({"success": False, "error": str(e)})
+
 
 def create_auth_token(user_id: str) -> str:
     """Create a secure temporary token for web auth"""
     token = secrets.token_urlsafe(32)
     AUTH_SESSIONS[token] = {
-        'user_id': user_id,
-        'expires': datetime.now() + timedelta(minutes=10)
+        "user_id": user_id,
+        "expires": datetime.now() + timedelta(minutes=10),
     }
     return token
+
 
 def cleanup_expired_tokens():
     """Remove expired tokens"""
     now = datetime.now()
-    expired = [k for k, v in AUTH_SESSIONS.items() if v.get('expires', now) < now]
+    expired = [k for k, v in AUTH_SESSIONS.items() if v.get("expires", now) < now]
     for token in expired:
-        if 'client' in AUTH_SESSIONS[token]:
+        if "client" in AUTH_SESSIONS[token]:
             # Clean up Telethon client if exists
             pass
         del AUTH_SESSIONS[token]
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("🌐 Starting T2T2 Web Authentication Server")
     print("📍 Access at: http://localhost:5000")
-    print("\nThis provides a secure way to authenticate without sending codes through Telegram")
-    
+    print(
+        "\nThis provides a secure way to authenticate without sending codes through Telegram"
+    )
+
     # Run periodic cleanup
     import threading
+
     def periodic_cleanup():
         while True:
             cleanup_expired_tokens()
             threading.Event().wait(60)  # Every minute
-    
+
     cleanup_thread = threading.Thread(target=periodic_cleanup, daemon=True)
     cleanup_thread.start()
-    
+
     app.run(debug=True, port=5000)

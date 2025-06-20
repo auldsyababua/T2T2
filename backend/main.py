@@ -42,11 +42,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173", 
+        "http://localhost:5173",
         "http://localhost:3000",
         "https://t2t2-app.vercel.app",
         "https://t2t2-*.vercel.app",  # Allow preview deployments
-        "https://t2t2.vercel.app"  # Production domain
+        "https://t2t2.vercel.app",  # Production domain
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -101,30 +101,32 @@ async def version_check():
     import subprocess
     import os
     from datetime import datetime
-    
+
     try:
         # Get current git commit
-        commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()[:7]
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], text=True
+        ).strip()[:7]
     except:
         commit = "unknown"
-    
+
     # Check if auth.py has the fix
     auth_file_path = os.path.join(os.path.dirname(__file__), "api/routes/auth.py")
     has_fix = False
     try:
-        with open(auth_file_path, 'r') as f:
+        with open(auth_file_path, "r") as f:
             content = f.read()
             # Check line 186 area for the fix
-            if 'User.tg_user_id == telegram_id' in content:
+            if "User.tg_user_id == telegram_id" in content:
                 has_fix = True
     except:
         pass
-    
+
     return {
         "commit": commit,
         "has_auth_fix": has_fix,
         "deployment_time": datetime.utcnow().isoformat(),
-        "auth_file_exists": os.path.exists(auth_file_path)
+        "auth_file_exists": os.path.exists(auth_file_path),
     }
 
 
@@ -144,34 +146,39 @@ async def test_auth_headers(request: Request):
     """Test endpoint to see what headers are received"""
     import json
     from datetime import datetime
-    
+
     headers_dict = dict(request.headers)
     print(f"[TEST-AUTH] Received headers: {list(headers_dict.keys())}", flush=True)
-    
+
     # Look for telegram headers
-    telegram_headers = {k: v for k, v in headers_dict.items() if 'telegram' in k.lower()}
+    telegram_headers = {
+        k: v for k, v in headers_dict.items() if "telegram" in k.lower()
+    }
     print(f"[TEST-AUTH] Telegram headers: {telegram_headers}", flush=True)
-    
+
     # Check for debug info header
     debug_info_header = headers_dict.get("x-debug-info")
     if debug_info_header:
         print(f"[TEST-AUTH] Debug info header: {debug_info_header}", flush=True)
-    
+
     # Check request body
     try:
         body = await request.json()
         if body.get("debugInfo"):
-            print(f"[TEST-AUTH] Debug info from body: {json.dumps(body['debugInfo'], indent=2)}", flush=True)
+            print(
+                f"[TEST-AUTH] Debug info from body: {json.dumps(body['debugInfo'], indent=2)}",
+                flush=True,
+            )
     except:
         pass
-    
+
     return {
         "all_headers": list(headers_dict.keys()),
         "telegram_headers": telegram_headers,
         "x_telegram_init_data": headers_dict.get("x-telegram-init-data"),
         "X_Telegram_Init_Data": headers_dict.get("X-Telegram-Init-Data"),
         "debug_info_header": headers_dict.get("x-debug-info"),
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
     }
 
 
@@ -180,65 +187,58 @@ async def test_auth_verify(request: Request):
     """Test endpoint that returns verification details instead of just logging"""
     from backend.utils.telegram_auth import verify_telegram_webapp_data
     import os
-    
+
     BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     init_data = request.headers.get("X-Telegram-Init-Data")
-    
+
     if not init_data:
         return {"error": "No init data provided"}
-    
+
     # Manual verification to get details
     import hmac
     import hashlib
     from urllib.parse import parse_qs, unquote
-    
+
     try:
         # Parse the data
         parsed_data = {}
         data_check_string_parts = []
-        
-        for part in init_data.split('&'):
-            if '=' in part:
-                key, value = part.split('=', 1)
+
+        for part in init_data.split("&"):
+            if "=" in part:
+                key, value = part.split("=", 1)
                 key = unquote(key)
                 value = unquote(value)
-                
-                if key != 'hash':
+
+                if key != "hash":
                     data_check_string_parts.append(f"{key}={value}")
                     parsed_data[key] = value
                 else:
                     received_hash = value
-        
+
         # Sort and create data check string
         data_check_string_parts.sort()
-        data_check_string = '\n'.join(data_check_string_parts)
-        
+        data_check_string = "\n".join(data_check_string_parts)
+
         # Calculate hash
         secret_key = hmac.new(
-            b"WebAppData",
-            BOT_TOKEN.encode(),
-            hashlib.sha256
+            b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256
         ).digest()
-        
+
         calculated_hash = hmac.new(
-            secret_key,
-            data_check_string.encode(),
-            hashlib.sha256
+            secret_key, data_check_string.encode(), hashlib.sha256
         ).hexdigest()
-        
+
         return {
             "success": calculated_hash == received_hash,
             "received_hash": received_hash,
             "calculated_hash": calculated_hash,
             "data_check_string": data_check_string,
             "parsed_params": list(parsed_data.keys()),
-            "bot_token_last4": f"...{BOT_TOKEN[-4:]}" if BOT_TOKEN else "None"
+            "bot_token_last4": f"...{BOT_TOKEN[-4:]}" if BOT_TOKEN else "None",
         }
     except Exception as e:
-        return {
-            "error": str(e),
-            "type": type(e).__name__
-        }
+        return {"error": str(e), "type": type(e).__name__}
 
 
 if __name__ == "__main__":
