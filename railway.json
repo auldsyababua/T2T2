@@ -17,5 +17,8 @@
     "restartPolicyMaxRetries": 10,
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30
+  },
+  "envVars": {
+    "NIXPACKS_PYTHON_VERSION": "3.9"
   }
 }

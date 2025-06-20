@@ -130,26 +130,31 @@ Ready to start? Use /auth to connect your account!
         except:
             pass  # Table might not exist
         
-        # Generate unique session ID
+        # Generate session ID for QR auth
+        import secrets
         session_id = secrets.token_urlsafe(16)
         
-        # Create QR auth URL
-        # Using Vercel deployment
-        vercel_url = "https://t2t2-app.vercel.app"  # Update this with your actual Vercel URL
-        qr_auth_url = f"{vercel_url}/api/qr_auth?session={session_id}&user_id={user_id}"
+        # Use Railway URL (update this when you get the actual URL)
+        railway_url = "https://t2t2-production.up.railway.app"  # Update with actual Railway URL
+        qr_auth_url = f"{railway_url}?session={session_id}&user_id={user_id}"
         
         await update.message.reply_text(
             "📱 Let's authenticate your Telegram account.\n\n"
             "🔐 **Authentication Process:**\n"
             f"Your User ID: `{user_id}`\n\n"
-            "Please contact the admin with your User ID to complete authentication.\n"
-            "The admin will help you authenticate securely without sharing passwords.\n\n"
+            "**Click this link to authenticate via QR code:**\n"
+            f"{qr_auth_url}\n\n"
+            "**How it works:**\n"
+            "1. Click the link above\n"
+            "2. Scan the QR code with Telegram on your phone\n"
+            "3. Confirm the login\n"
+            "4. Return here and use /chats to select chats\n\n"
             "Once authenticated, you'll be able to:\n"
             "• Select which chats to index\n"
             "• Search across all your messages\n"
-            "• Access your full chat history\n\n"
-            "⚠️ Never share your 2FA password with anyone!",
-            parse_mode='Markdown'
+            "• Access your full chat history",
+            parse_mode='Markdown',
+            disable_web_page_preview=False
         )
         
         # Clear any previous state
