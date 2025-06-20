@@ -134,23 +134,23 @@ Ready to start? Use /auth to connect your account!
         session_id = secrets.token_urlsafe(16)
         
         # Create QR auth URL
-        # Using GitHub Pages for the frontend
+        # For testing, use local URL. For production, use GitHub Pages
+        local_url = f"http://localhost:5000/auth?session={session_id}&user_id={user_id}"
         github_pages_url = "https://auldsyababua.github.io/T2T2/qr-auth.html"
-        server_url = "http://localhost:5000"  # Local server for auth
         
-        qr_auth_url = f"{github_pages_url}?session={session_id}&user_id={user_id}&server={server_url}"
+        # Use local URL for now
+        qr_auth_url = local_url
         
         await update.message.reply_text(
             "📱 Let's authenticate your Telegram account.\n\n"
-            "**Option 1: QR Code Authentication 🎉**\n"
+            "Option 1: QR Code Authentication 🎉\n"
             f"Click here: {qr_auth_url}\n\n"
             "If the link doesn't work, use Option 2:\n\n"
-            "**Option 2: Admin Authentication**\n"
-            f"Your User ID: `{user_id}`\n"
+            "Option 2: Admin Authentication\n"
+            f"Your User ID: {user_id}\n"
             "Contact admin to complete authentication.\n\n"
             "The admin will help you authenticate securely without sharing passwords.",
-            disable_web_page_preview=True,
-            parse_mode='Markdown'
+            disable_web_page_preview=True
         )
         
         # Clear any previous state

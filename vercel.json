@@ -1,9 +1,15 @@
 {
-    "outputDirectory": "UI/dist",
+    "buildCommand": "",
+    "outputDirectory": "",
+    "functions": {
+        "api/*.py": {
+            "runtime": "python3.9"
+        }
+    },
     "rewrites": [
         {
-            "source": "/(.*)",
-            "destination": "/index.html"
+            "source": "/api/(.*)",
+            "destination": "/api/$1"
         }
     ]
 }
