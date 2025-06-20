@@ -519,8 +519,9 @@ def run_server():
     # Start cleanup task
     loop.create_task(cleanup_expired_sessions())
     
-    # Run Flask
-    app.run(debug=True, port=5000, use_reloader=False)
+    # Run Flask with Railway PORT
+    port = int(os.getenv('PORT', '5000'))
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
     print("🚀 T2T2 QR Authentication Server")

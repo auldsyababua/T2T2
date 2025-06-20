@@ -140,14 +140,16 @@ Ready to start? Use /auth to connect your account!
         
         await update.message.reply_text(
             "📱 Let's authenticate your Telegram account.\n\n"
-            "Option 1: QR Code Authentication 🎉\n"
-            f"Click here: {qr_auth_url}\n\n"
-            "If the link doesn't work, use Option 2:\n\n"
-            "Option 2: Admin Authentication\n"
-            f"Your User ID: {user_id}\n"
-            "Contact admin to complete authentication.\n\n"
-            "The admin will help you authenticate securely without sharing passwords.",
-            disable_web_page_preview=True
+            "🔐 **Authentication Process:**\n"
+            f"Your User ID: `{user_id}`\n\n"
+            "Please contact the admin with your User ID to complete authentication.\n"
+            "The admin will help you authenticate securely without sharing passwords.\n\n"
+            "Once authenticated, you'll be able to:\n"
+            "• Select which chats to index\n"
+            "• Search across all your messages\n"
+            "• Access your full chat history\n\n"
+            "⚠️ Never share your 2FA password with anyone!",
+            parse_mode='Markdown'
         )
         
         # Clear any previous state
