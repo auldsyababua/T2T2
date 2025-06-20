@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ['python39', 'gcc']
+
+[phases.install]
+cmds = ['pip install -r requirements.txt']
+
+[phases.build]
+# No build phase needed for Python
+
+[start]
+cmd = 'python t2t2_qr_auth.py'
+
+[providers]
+python = true
