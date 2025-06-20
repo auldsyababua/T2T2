@@ -2,6 +2,10 @@
 UI/
 UI/**
 
+# Ignore Supabase functions (Deno)
+supabase/
+supabase/**
+
 # Ignore test files
 tests/
 *.test.py
@@ -28,3 +32,7 @@ package.json
 package-lock.json
 node_modules/
 vercel.json
+
+# Ignore backend directory if it exists
+backend/
+backend/**
