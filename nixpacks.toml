@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ['python39', 'python39Packages.pip', 'gcc']
-
-[phases.install]
-cmds = ['python -m pip install -r requirements.txt']
-
-[start]
-cmd = 'python t2t2_qr_auth.py'
