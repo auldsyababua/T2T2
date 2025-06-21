@@ -14,7 +14,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
-from telethon.tl.functions.auth import ExportLoginTokenRequest, AcceptLoginTokenRequest
+from telethon.tl.functions.auth import ExportLoginTokenRequest
 from telethon.tl.types import auth, UpdateLoginToken
 from supabase import create_client
 from dotenv import load_dotenv
@@ -304,20 +304,49 @@ class QRAuthManager:
             # Connect without bot token - this creates a user client
             await client.connect()
             
-            # Set up event handler for login token updates
-            @client.on(events.Raw(types=UpdateLoginToken))
-            async def handle_login_token(update):
-                logger.info(f"Received login token update for session {session_id}")
-                try:
-                    # Accept the login token to complete authentication
-                    await client(AcceptLoginTokenRequest(update.authorization_form.token))
-                    
-                    # Mark session as authenticated when we get this event
-                    if session_id in QR_SESSIONS:
-                        QR_SESSIONS[session_id]["authenticated"] = True
-                        logger.info(f"Session {session_id} authenticated via updateLoginToken")
-                except Exception as e:
-                    logger.error(f"Error accepting login token: {e}")
+            # Ensure we're connected properly
+            if not client.is_connected():
+                logger.error(f"Failed to connect client for session {session_id}")
+                return False
+                
+            logger.info(f"Client connected for session {session_id}")
+            
+            # Set up event handler for all raw updates to catch login token updates
+            @client.on(events.Raw())
+            async def handle_raw_update(update):
+                # Check if this is an updateLoginToken
+                if isinstance(update, UpdateLoginToken):
+                    logger.info(f"Received updateLoginToken for session {session_id}")
+                    try:
+                        # When we receive updateLoginToken, we need to call exportLoginToken again
+                        # to complete the authentication flow
+                        second_result = await client(
+                            ExportLoginTokenRequest(
+                                api_id=TELEGRAM_API_ID,
+                                api_hash=TELEGRAM_API_HASH,
+                                except_ids=[],
+                            )
+                        )
+                        
+                        logger.info(f"Second export result type: {type(second_result)}")
+                        
+                        # Check if this is a success
+                        if hasattr(second_result, 'authorization'):
+                            # Authentication successful!
+                            if session_id in QR_SESSIONS:
+                                QR_SESSIONS[session_id]["authenticated"] = True
+                                logger.info(f"Session {session_id} authenticated successfully via QR")
+                                logger.info(f"User authorized: {second_result.authorization.user.id}")
+                        elif isinstance(second_result, auth.LoginToken):
+                            # Still waiting, might need another attempt
+                            logger.info("Received another LoginToken, authentication pending")
+                        else:
+                            logger.warning(f"Unexpected second result: {second_result}")
+                            
+                    except Exception as e:
+                        logger.error(f"Error completing login token flow: {e}")
+                        import traceback
+                        logger.error(traceback.format_exc())
 
             # Export login token
             result = await client(
@@ -399,7 +428,8 @@ class QRAuthManager:
         logger.info(f"Starting authentication check for session {session_id}")
         
         # Start handling updates to receive login token events
-        asyncio.create_task(client.run_until_disconnected())
+        update_task = asyncio.create_task(client.run_until_disconnected())
+        logger.info(f"Started update handling for session {session_id}")
         
         for attempt in range(max_attempts):
             if session_id not in QR_SESSIONS:
