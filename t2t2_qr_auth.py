@@ -12,10 +12,10 @@ import qrcode
 import io
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from telethon import TelegramClient
+from telethon import TelegramClient, events
 from telethon.sessions import StringSession
-from telethon.tl.functions.auth import ExportLoginTokenRequest
-from telethon.tl.types import auth
+from telethon.tl.functions.auth import ExportLoginTokenRequest, AcceptLoginTokenRequest
+from telethon.tl.types import auth, UpdateLoginToken
 from supabase import create_client
 from dotenv import load_dotenv
 import logging
@@ -303,6 +303,21 @@ class QRAuthManager:
 
             # Connect without bot token - this creates a user client
             await client.connect()
+            
+            # Set up event handler for login token updates
+            @client.on(events.Raw(types=UpdateLoginToken))
+            async def handle_login_token(update):
+                logger.info(f"Received login token update for session {session_id}")
+                try:
+                    # Accept the login token to complete authentication
+                    await client(AcceptLoginTokenRequest(update.authorization_form.token))
+                    
+                    # Mark session as authenticated when we get this event
+                    if session_id in QR_SESSIONS:
+                        QR_SESSIONS[session_id]["authenticated"] = True
+                        logger.info(f"Session {session_id} authenticated via updateLoginToken")
+                except Exception as e:
+                    logger.error(f"Error accepting login token: {e}")
 
             # Export login token
             result = await client(
@@ -383,20 +398,19 @@ class QRAuthManager:
 
         logger.info(f"Starting authentication check for session {session_id}")
         
+        # Start handling updates to receive login token events
+        asyncio.create_task(client.run_until_disconnected())
+        
         for attempt in range(max_attempts):
             if session_id not in QR_SESSIONS:
                 logger.info(f"Session {session_id} was removed, stopping check")
                 break
-
-            try:
-                # Check if authenticated by checking if we're logged in
-                is_authorized = await client.is_user_authorized()
-                logger.debug(f"Attempt {attempt + 1}: is_user_authorized = {is_authorized}")
                 
-                if is_authorized:
-                    # We're authenticated!
-                    session["authenticated"] = True
-
+            # Check if already authenticated via event handler
+            if session.get("authenticated"):
+                logger.info(f"Session {session_id} authenticated via event handler")
+                
+                try:
                     # Get the authenticated user info
                     me = await client.get_me()
                     logger.info(f"Authenticated as: {me.username or me.first_name} (ID: {me.id})")
@@ -427,8 +441,52 @@ class QRAuthManager:
                         f"User {session['user_id']} authenticated successfully via QR"
                     )
 
-                    # Clean up
-                    await client.disconnect()
+                    # Clean up but don't disconnect - let run_until_disconnected handle it
+                    break
+                    
+                except Exception as e:
+                    logger.error(f"Error during authentication: {e}")
+                    
+            try:
+                # Also check the traditional way
+                is_authorized = await client.is_user_authorized()
+                logger.debug(f"Attempt {attempt + 1}: is_user_authorized = {is_authorized}")
+                
+                if is_authorized and not session.get("authenticated"):
+                    # We're authenticated!
+                    session["authenticated"] = True
+                    
+                    # Get the authenticated user info
+                    me = await client.get_me()
+                    logger.info(f"Authenticated as: {me.username or me.first_name} (ID: {me.id})")
+
+                    # Save session to database
+                    session_string = client.session.save()
+
+                    supabase.table("user_sessions").upsert(
+                        {
+                            "user_id": session["user_id"],
+                            "session_string": session_string,
+                            "monitored_chats": [],
+                            "created_at": datetime.now().isoformat(),
+                        }
+                    ).execute()
+
+                    # Update pending auth if exists
+                    supabase.table("pending_authentications").update(
+                        {
+                            "status": "completed",
+                            "completed_at": datetime.now().isoformat(),
+                        }
+                    ).eq("user_id", session["user_id"]).eq(
+                        "status", "pending"
+                    ).execute()
+
+                    logger.info(
+                        f"User {session['user_id']} authenticated successfully via QR"
+                    )
+
+                    # Clean up but don't disconnect - let run_until_disconnected handle it
                     break
 
             except Exception as e:
@@ -442,7 +500,11 @@ class QRAuthManager:
         if session_id in QR_SESSIONS and not QR_SESSIONS[session_id]["authenticated"]:
             logger.info(f"Session {session_id} expired without authentication")
             client = QR_SESSIONS[session_id]["client"]
-            await client.disconnect()
+            try:
+                client.disconnect()  # This will stop run_until_disconnected
+                await asyncio.sleep(0.1)  # Give it a moment to clean up
+            except Exception as e:
+                logger.debug(f"Error disconnecting client: {e}")
             del QR_SESSIONS[session_id]
 
 
