@@ -2,7 +2,7 @@
 # Minimal dependencies for t2t2_qr_auth.py
 
 # Core
-flask==3.0.0
+flask[async]==3.0.0
 flask-cors==4.0.0
 telethon==1.34.0
 python-dotenv==1.0.0
