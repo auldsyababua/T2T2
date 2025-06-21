@@ -278,33 +278,20 @@ QR_AUTH_PAGE = """
 
 class QRAuthManager:
     def __init__(self):
-        self.bot_client = None
+        # No bot client needed - QR auth uses user clients
+        pass
 
-    async def initialize_bot(self):
-        """Initialize the bot client for handling updates"""
-        if not self.bot_client:
-            try:
-                # Use StringSession to avoid filesystem writes
-                self.bot_client = TelegramClient(
-                    StringSession(), TELEGRAM_API_ID, TELEGRAM_API_HASH
-                )
-                await self.bot_client.start(bot_token=TELEGRAM_BOT_TOKEN)
-                logger.info("Bot client initialized successfully")
-
-                # Listen for login token updates
-                @self.bot_client.on(events.Raw)
-                async def handle_update(update):
-                    if hasattr(update, "login_token"):
-                        await self.handle_login_update(update)
-            except Exception as e:
-                logger.error(f"Failed to initialize bot client: {e}")
-                logger.warning("Server will run in degraded mode without QR auth")
-                # Don't re-raise - allow server to start
+    async def initialize(self):
+        """Initialize the QR auth manager"""
+        logger.info("QR Auth Manager initialized")
+        logger.info(f"Using Telegram API ID: {TELEGRAM_API_ID}")
+        logger.info("Ready to create QR authentication sessions")
 
     async def create_qr_session(self, user_id: str, session_id: str):
         """Create a new QR authentication session"""
         try:
-            # Create a new client for this session
+            # Create a new USER client for this session (no bot token!)
+            # This is essential - bot clients cannot receive auth events
             client = TelegramClient(
                 StringSession(),
                 TELEGRAM_API_ID,
@@ -314,6 +301,7 @@ class QRAuthManager:
                 app_version="1.0",
             )
 
+            # Connect without bot token - this creates a user client
             await client.connect()
 
             # Export login token
@@ -366,6 +354,8 @@ class QRAuthManager:
                 }
 
                 logger.info(f"Created QR session {session_id} for user {user_id}")
+                logger.info(f"QR token expires at: {result.expires}")
+                logger.info(f"Token bytes length: {len(result.token)}")
 
                 # Start checking for authentication
                 asyncio.create_task(self.check_authentication(session_id))
@@ -391,17 +381,25 @@ class QRAuthManager:
         client = session["client"]
         max_attempts = 30  # Check for 30 seconds
 
-        for _ in range(max_attempts):
+        logger.info(f"Starting authentication check for session {session_id}")
+        
+        for attempt in range(max_attempts):
             if session_id not in QR_SESSIONS:
+                logger.info(f"Session {session_id} was removed, stopping check")
                 break
 
             try:
-                # Check if authenticated by trying to get dialogs
-                async for dialog in client.iter_dialogs(limit=1):
-                    # If we can get dialogs, we're authenticated!
+                # Check if authenticated by checking if we're logged in
+                is_authorized = await client.is_user_authorized()
+                logger.debug(f"Attempt {attempt + 1}: is_user_authorized = {is_authorized}")
+                
+                if is_authorized:
+                    # We're authenticated!
                     session["authenticated"] = True
 
-                    # Authentication successful
+                    # Get the authenticated user info
+                    me = await client.get_me()
+                    logger.info(f"Authenticated as: {me.username or me.first_name} (ID: {me.id})")
 
                     # Save session to database
                     session_string = client.session.save()
@@ -433,14 +431,16 @@ class QRAuthManager:
                     await client.disconnect()
                     break
 
-            except Exception:
+            except Exception as e:
                 # Not authenticated yet, keep checking
+                logger.debug(f"Not authenticated yet: {e}")
                 pass
 
             await asyncio.sleep(1)
 
         # Clean up if not authenticated
         if session_id in QR_SESSIONS and not QR_SESSIONS[session_id]["authenticated"]:
+            logger.info(f"Session {session_id} expired without authentication")
             client = QR_SESSIONS[session_id]["client"]
             await client.disconnect()
             del QR_SESSIONS[session_id]
@@ -546,12 +546,11 @@ def run_server():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    # Initialize bot (don't fail if it errors)
+    # Initialize QR manager
     try:
-        loop.run_until_complete(qr_manager.initialize_bot())
+        loop.run_until_complete(qr_manager.initialize())
     except Exception as e:
-        logger.error(f"Bot initialization failed: {e}")
-        logger.warning("Starting server without QR authentication support")
+        logger.error(f"QR manager initialization failed: {e}")
 
     # Start cleanup task
     loop.create_task(cleanup_expired_sessions())
