@@ -12,7 +12,7 @@ import qrcode
 import io
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from telethon import TelegramClient, events
+from telethon import TelegramClient
 from telethon.sessions import StringSession
 from telethon.tl.functions.auth import ExportLoginTokenRequest
 from telethon.tl.types import auth
