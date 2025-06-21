@@ -378,6 +378,8 @@ class QRAuthManager:
 
         except Exception as e:
             logger.error(f"Failed to create QR session: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return False
 
     async def check_authentication(self, session_id: str):

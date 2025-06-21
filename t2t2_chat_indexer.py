@@ -148,11 +148,11 @@ Ready to start? Use /auth to connect your account!
 
         await update.message.reply_text(
             "📱 Let's authenticate your Telegram account.\n\n"
-            "🔐 **Authentication Process:**\n"
-            f"Your User ID: `{user_id}`\n\n"
-            "**Click this link to authenticate via QR code:**\n"
+            "🔐 Authentication Process:\n"
+            f"Your User ID: {user_id}\n\n"
+            "Click this link to authenticate via QR code:\n"
             f"{qr_auth_url}\n\n"
-            "**How it works:**\n"
+            "How it works:\n"
             "1. Click the link above\n"
             "2. Scan the QR code with Telegram on your phone\n"
             "3. Confirm the login\n"
@@ -161,7 +161,6 @@ Ready to start? Use /auth to connect your account!
             "• Select which chats to index\n"
             "• Search across all your messages\n"
             "• Access your full chat history",
-            parse_mode="Markdown",
             disable_web_page_preview=False,
         )
 
