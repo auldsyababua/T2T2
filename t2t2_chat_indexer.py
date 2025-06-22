@@ -135,28 +135,46 @@ Ready to start? Use /auth to connect your account!
         except:
             pass  # Table might not exist
 
-        # Generate session ID for QR auth
-        import secrets
+        # Create pending authentication record
+        try:
+            # Check if already has pending auth
+            result = supabase.table("pending_authentications")\
+                .select("*")\
+                .eq("user_id", user_id)\
+                .eq("status", "pending")\
+                .execute()
+                
+            if not result.data:
+                # Create new pending authentication
+                supabase.table("pending_authentications").insert({
+                    "user_id": user_id,
+                    "status": "pending",
+                    "created_at": datetime.now().isoformat()
+                }).execute()
+        except Exception as e:
+            logger.error(f"Error creating pending auth: {e}")
 
-        session_id = secrets.token_urlsafe(16)
+        # Generate session ID for auth
+        from datetime import datetime
+        session_id = f"{user_id}_{int(datetime.now().timestamp())}"
 
-        # Use Railway URL (update this when you get the actual URL)
-        railway_url = (
-            "https://t2t2-production.up.railway.app"  # Update with actual Railway URL
-        )
-        qr_auth_url = f"{railway_url}?session={session_id}&user_id={user_id}"
+        # Use Railway URL
+        railway_url = "https://t2t2-production.up.railway.app"
+        auth_url = f"{railway_url}?session={session_id}&user_id={user_id}"
 
         await update.message.reply_text(
             "📱 Let's authenticate your Telegram account.\n\n"
-            "🔐 Authentication Process:\n"
+            "🔐 Manual Authentication Process:\n"
             f"Your User ID: {user_id}\n\n"
-            "Click this link to authenticate via QR code:\n"
-            f"{qr_auth_url}\n\n"
+            "Click this link for instructions:\n"
+            f"{auth_url}\n\n"
             "How it works:\n"
             "1. Click the link above\n"
-            "2. Scan the QR code with Telegram on your phone\n"
-            "3. Confirm the login\n"
-            "4. Return here and use /chats to select chats\n\n"
+            "2. You'll see instructions for manual authentication\n"
+            "3. You'll receive a code from Telegram\n"
+            "4. Send the code to admin via SMS/phone call\n"
+            "5. Admin will complete your authentication\n\n"
+            "⚠️ IMPORTANT: Never send the code through Telegram!\n\n"
             "Once authenticated, you'll be able to:\n"
             "• Select which chats to index\n"
             "• Search across all your messages\n"
