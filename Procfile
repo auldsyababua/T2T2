@@ -1,1 +1,1 @@
-web: python t2t2_qr_auth.py
+web: python start_services.py
