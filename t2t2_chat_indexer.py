@@ -280,9 +280,22 @@ Ready to start? Use /auth to connect your account!
             # Get or create Telethon client
             client = await self.get_user_client(user_id)
 
-            # Get dialogs
+            # Get dialogs - increased limit to get more chats
             dialogs = []
-            async for dialog in client.iter_dialogs(limit=50):
+            folders = {}  # Store folder info
+            
+            # First, get folder information
+            from telethon.tl.functions.messages import GetDialogFiltersRequest
+            try:
+                filters = await client(GetDialogFiltersRequest())
+                for f in filters.filters:
+                    if hasattr(f, 'title') and hasattr(f, 'include_peers'):
+                        folders[f.title] = [p.user_id if hasattr(p, 'user_id') else p.channel_id for p in f.include_peers]
+                        logger.info(f"Found folder: {f.title} with {len(f.include_peers)} chats")
+            except Exception as e:
+                logger.error(f"Could not get folders: {e}")
+            
+            async for dialog in client.iter_dialogs(limit=200):  # Increased from 50 to 200
                 chat_info = {
                     "id": dialog.id,
                     "title": dialog.title or dialog.name or "Unknown",
@@ -291,16 +304,41 @@ Ready to start? Use /auth to connect your account!
                     "is_channel": dialog.is_channel,
                     "unread_count": dialog.unread_count,
                     "message_count": dialog.message.id if dialog.message else 0,
+                    "folder": None
                 }
+                
+                # Check which folder this chat belongs to
+                for folder_name, chat_ids in folders.items():
+                    if dialog.id in chat_ids:
+                        chat_info["folder"] = folder_name
+                        break
+                        
                 dialogs.append(chat_info)
 
             # Create inline keyboard
             keyboard = []
             monitored = MONITORED_CHATS.get(user_id, set())
 
-            for dialog in dialogs[:20]:  # Limit to 20 for UI
+            # Store dialogs in context for pagination/filtering
+            context.user_data['all_dialogs'] = dialogs
+            context.user_data['current_filter'] = None
+            
+            # Check if there's a 10NetZero folder
+            has_10netzero = any(f == "10NetZero" for f in folders.keys())
+            
+            if has_10netzero:
+                # Add folder filter buttons first
+                keyboard.append([
+                    InlineKeyboardButton("📁 All Chats", callback_data="filter:all"),
+                    InlineKeyboardButton("💼 10NetZero", callback_data="filter:10NetZero")
+                ])
+                keyboard.append([InlineKeyboardButton("➖➖➖➖➖", callback_data="none")])
+            
+            # Show first 30 chats (increased from 20)
+            for dialog in dialogs[:30]:
                 status = "✅" if str(dialog["id"]) in monitored else "⬜"
-                button_text = f"{status} {dialog['title'][:30]}"
+                folder_indicator = f"[{dialog['folder']}] " if dialog.get('folder') else ""
+                button_text = f"{status} {folder_indicator}{dialog['title'][:25]}"
                 callback_data = f"toggle_chat:{dialog['id']}"
                 keyboard.append(
                     [InlineKeyboardButton(button_text, callback_data=callback_data)]
