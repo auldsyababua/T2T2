@@ -13,7 +13,8 @@ from dotenv import load_dotenv
 import logging
 
 # Load environment variables - Railway will provide these
-load_dotenv()
+load_dotenv('.env.supabase_bot')  # Primary file with Supabase config
+load_dotenv('.env', override=False)  # Fallback for missing vars
 
 # Configuration
 TELEGRAM_API_ID = int(os.getenv("TELEGRAM_API_ID", "0"))

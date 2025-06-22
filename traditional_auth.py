@@ -14,8 +14,9 @@ from telethon.sessions import StringSession
 from supabase import create_client
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables - try multiple env files
+load_dotenv('.env.supabase_bot')  # Primary file with Supabase config
+load_dotenv('.env', override=False)  # Fallback for missing vars
 
 TELEGRAM_API_ID = int(os.getenv("TELEGRAM_API_ID", "0"))
 TELEGRAM_API_HASH = os.getenv("TELEGRAM_API_HASH", "")
