@@ -5,6 +5,7 @@ Uses Telethon for full chat access + Bot for interface
 """
 
 import os
+import sys
 import asyncio
 import logging
 from typing import Set
@@ -28,8 +29,12 @@ from supabase import create_client, Client
 from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 
-# Load environment
-load_dotenv(".env.supabase_bot")
+# Load environment - Railway provides these directly
+if os.path.exists(".env.supabase_bot"):
+    load_dotenv(".env.supabase_bot")  # For local development
+else:
+    # On Railway, environment variables are already set
+    pass
 
 # Setup logging
 logging.basicConfig(
@@ -45,9 +50,30 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
 
+# Log configuration for debugging
+logger.info(f"Running on {'Railway' if os.getenv('RAILWAY_ENVIRONMENT') else 'Local'}")
+logger.info(f"TELEGRAM_API_ID: {'Set' if TELEGRAM_API_ID else 'Not set'}")
+logger.info(f"TELEGRAM_BOT_TOKEN: {'Set' if TELEGRAM_BOT_TOKEN else 'Not set'}")
+logger.info(f"SUPABASE_URL: {'Set' if SUPABASE_URL else 'Not set'}")
+logger.info(f"OPENAI_API_KEY: {'Set' if OPENAI_API_KEY else 'Not set'}")
+
+# Check required environment variables
+if not all([TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_BOT_TOKEN, SUPABASE_URL, SUPABASE_KEY]):
+    logger.error("Missing required environment variables!")
+    logger.error(f"TELEGRAM_API_ID: {bool(TELEGRAM_API_ID)}")
+    logger.error(f"TELEGRAM_API_HASH: {bool(TELEGRAM_API_HASH)}")
+    logger.error(f"TELEGRAM_BOT_TOKEN: {bool(TELEGRAM_BOT_TOKEN)}")
+    logger.error(f"SUPABASE_URL: {bool(SUPABASE_URL)}")
+    logger.error(f"SUPABASE_KEY: {bool(SUPABASE_KEY)}")
+    sys.exit(1)
+
 # Initialize services
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+try:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+except Exception as e:
+    logger.error(f"Failed to initialize services: {e}")
+    sys.exit(1)
 
 # Store user sessions and selected chats
 USER_SESSIONS = {}  # user_id -> telethon_session_string

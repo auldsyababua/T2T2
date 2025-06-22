@@ -22,8 +22,8 @@ def monitor():
     print("📊 Simple Indexing Monitor")
     print("=" * 50)
     
-    # Check both tables
-    tables_to_check = ["messages", "message_embeddings"]
+    # Check all relevant tables
+    tables_to_check = ["messages", "message_embeddings", "telegram_files", "documents"]
     
     start_counts = {}
     for table in tables_to_check:
