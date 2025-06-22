@@ -9,6 +9,7 @@ import sys
 import asyncio
 import logging
 from typing import Set
+from datetime import datetime
 
 # Telegram libraries
 from telethon import TelegramClient
@@ -96,7 +97,7 @@ class T2T2ChatIndexer:
             for session in sessions.data:
                 USER_SESSIONS[session["user_id"]] = session["session_string"]
                 MONITORED_CHATS[session["user_id"]] = set(session["monitored_chats"])
-        except:
+        except Exception:
             logger.info("No saved sessions found")
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -158,7 +159,7 @@ Ready to start? Use /auth to connect your account!
                     "Please have your phone ready to receive the verification code."
                 )
                 return
-        except:
+        except Exception:
             pass  # Table might not exist
 
         # Create pending authentication record
@@ -169,7 +170,7 @@ Ready to start? Use /auth to connect your account!
                 .eq("user_id", user_id)\
                 .eq("status", "pending")\
                 .execute()
-                
+
             if not result.data:
                 # Create new pending authentication
                 supabase.table("pending_authentications").insert({
@@ -261,7 +262,7 @@ Ready to start? Use /auth to connect your account!
                         f"Phone: {phone}\n\n"
                         f"Run admin_auth_tool.py to authenticate",
                     )
-                except:
+                except Exception:
                     pass  # Admin notification failed, but user request is still saved
 
         except Exception as e:
@@ -283,7 +284,7 @@ Ready to start? Use /auth to connect your account!
 
         await update.message.reply_text(
             "⚠️ Please DO NOT send the code here!\n\n"
-            "For security reasons, Telegram blocks authentication when codes are shared in chats.\n\n"
+            "Telegram blocks authentication when codes are shared in chats.\n\n"
             "**Instead:**\n"
             "1. Contact the admin via phone/text\n"
             "2. Share the code with them directly\n"
@@ -309,18 +310,21 @@ Ready to start? Use /auth to connect your account!
             # Get dialogs - increased limit to get more chats
             dialogs = []
             folders = {}  # Store folder info
-            
+
             # First, get folder information
             from telethon.tl.functions.messages import GetDialogFiltersRequest
             try:
                 filters = await client(GetDialogFiltersRequest())
                 for f in filters.filters:
                     if hasattr(f, 'title') and hasattr(f, 'include_peers'):
-                        folders[f.title] = [p.user_id if hasattr(p, 'user_id') else p.channel_id for p in f.include_peers]
+                        folders[f.title] = [
+                            p.user_id if hasattr(p, 'user_id')
+                            else p.channel_id for p in f.include_peers
+                        ]
                         logger.info(f"Found folder: {f.title} with {len(f.include_peers)} chats")
             except Exception as e:
                 logger.error(f"Could not get folders: {e}")
-            
+
             async for dialog in client.iter_dialogs(limit=200):  # Increased from 50 to 200
                 chat_info = {
                     "id": dialog.id,
@@ -332,13 +336,13 @@ Ready to start? Use /auth to connect your account!
                     "message_count": dialog.message.id if dialog.message else 0,
                     "folder": None
                 }
-                
+
                 # Check which folder this chat belongs to
                 for folder_name, chat_ids in folders.items():
                     if dialog.id in chat_ids:
                         chat_info["folder"] = folder_name
                         break
-                        
+
                 dialogs.append(chat_info)
 
             # Create inline keyboard
@@ -348,10 +352,10 @@ Ready to start? Use /auth to connect your account!
             # Store dialogs in context for pagination/filtering
             context.user_data['all_dialogs'] = dialogs
             context.user_data['current_filter'] = None
-            
+
             # Check if there's a 10NetZero folder
             has_10netzero = any(f == "10NetZero" for f in folders.keys())
-            
+
             if has_10netzero:
                 # Add folder filter buttons first
                 keyboard.append([
@@ -359,7 +363,7 @@ Ready to start? Use /auth to connect your account!
                     InlineKeyboardButton("💼 10NetZero", callback_data="filter:10NetZero")
                 ])
                 keyboard.append([InlineKeyboardButton("➖➖➖➖➖", callback_data="none")])
-            
+
             # Show first 30 chats (increased from 20)
             for dialog in dialogs[:30]:
                 status = "✅" if str(dialog["id"]) in monitored else "⬜"
@@ -637,7 +641,7 @@ Ready to start? Use /auth to connect your account!
 
                     message_count = result.count if hasattr(result, "count") else 0
                     status_text += f"💬 **Indexed Messages:** {message_count:,}\n"
-                except:
+                except Exception:
                     pass
             else:
                 status_text += "📋 **Monitored Chats:** None selected\n"
@@ -676,7 +680,7 @@ Ready to start? Use /auth to connect your account!
                 else:
                     status_text += "❓ **Authentication:** Not authenticated\n"
                     status_text += "\nUse /auth to get started"
-            except:
+            except Exception:
                 status_text += "❓ **Authentication:** Not authenticated\n"
                 status_text += "\nUse /auth to get started"
 
@@ -766,7 +770,7 @@ Ready to start? Use /auth to connect your account!
                                 text="✅ Authentication successful!\n\n"
                                 "You can now use /chats to select which chats to index.",
                             )
-                        except:
+                        except Exception:
                             pass  # User might have blocked bot
             except Exception as e:
                 logger.error(f"Error checking new auths: {e}")
@@ -780,7 +784,7 @@ Ready to start? Use /auth to connect your account!
         # Create user_sessions table if needed
         try:
             supabase.table("user_sessions").select("id").limit(1).execute()
-        except:
+        except Exception:
             # Table doesn't exist, create it
             logger.info("Creating user_sessions table...")
             # You'll need to add this to your schema

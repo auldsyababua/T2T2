@@ -29,8 +29,6 @@ CORS(app)  # Enable CORS for GitHub Pages
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
 # HTML template for auth instruction page
 AUTH_PAGE = """
 <!DOCTYPE html>
@@ -139,7 +137,7 @@ AUTH_PAGE = """
     <div class="container">
         <h1>T2T2 Authentication</h1>
         <p class="subtitle">Manual verification process</p>
-        
+
         <div class="instructions">
             <h3>🔐 Authentication Steps:</h3>
             <ol>
@@ -149,30 +147,31 @@ AUTH_PAGE = """
                 <li>✅ You'll see a success message here when complete</li>
             </ol>
         </div>
-        
+
         <div class="warning">
             <h4>⚠️ Important Security Notice:</h4>
-            <p><strong>NEVER</strong> send your verification code through Telegram! This will invalidate the code for security reasons.</p>
+            <p><strong>NEVER</strong> send your verification code through Telegram!
+            This will invalidate the code for security reasons.</p>
             <p>Only share the code through non-Telegram channels (SMS, phone call, etc.)</p>
         </div>
-        
+
         <div id="phone-container"></div>
-        
+
         <div id="status" class="status waiting">
             <div class="spinner"></div>
             <p>Waiting for authentication...</p>
             <p>The admin will process your request shortly.</p>
         </div>
     </div>
-    
+
     <script>
         const sessionId = new URLSearchParams(window.location.search).get('session');
         const userId = new URLSearchParams(window.location.search).get('user_id');
         let checkInterval;
-        
+
         if (!sessionId || !userId) {
             document.getElementById('status').className = 'status error';
-            document.getElementById('status').innerHTML = 
+            document.getElementById('status').innerHTML =
                 '<p>❌ Invalid session link.</p>' +
                 '<p>Please get a new link from the bot.</p>';
         } else {
@@ -180,28 +179,28 @@ AUTH_PAGE = """
             checkAuth();
             checkInterval = setInterval(checkAuth, 3000); // Check every 3 seconds
         }
-        
+
         async function checkAuth() {
             try {
                 const response = await fetch(`/check_auth/${sessionId}`);
                 const data = await response.json();
-                
+
                 if (data.authenticated) {
                     clearInterval(checkInterval);
-                    
+
                     document.getElementById('status').className = 'status success';
-                    document.getElementById('status').innerHTML = 
+                    document.getElementById('status').innerHTML =
                         '<h2>✅ Authentication Successful!</h2>' +
                         '<p>You are now authenticated with T2T2.</p>' +
                         '<p>You can close this window and return to Telegram.</p>' +
                         '<p>Use <strong>/chats</strong> in the bot to select chats to index.</p>';
-                    
+
                     // Remove instructions since they're no longer needed
                     document.querySelector('.instructions').style.display = 'none';
                     document.querySelector('.warning').style.display = 'none';
                 } else if (data.error) {
                     document.getElementById('status').className = 'status error';
-                    document.getElementById('status').innerHTML = 
+                    document.getElementById('status').innerHTML =
                         '<p>❌ ' + data.error + '</p>';
                 }
             } catch (e) {
@@ -214,40 +213,30 @@ AUTH_PAGE = """
 </html>
 """
 
-
-
-
-
 @app.route("/")
 def index():
     return AUTH_PAGE
-
-
 @app.route("/health")
 def health():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "service": "T2T2 Traditional Auth"})
-
-
-
-
 @app.route("/create_session")
 def create_session():
     """Create a new authentication session"""
     try:
         user_id = request.args.get("user_id")
         phone_number = request.args.get("phone_number")
-        
+
         if not user_id:
             return jsonify({"error": "user_id required"}), 400
-            
+
         # Check if user already has a pending authentication
         result = supabase.table("pending_authentications")\
             .select("*")\
             .eq("user_id", user_id)\
             .eq("status", "pending")\
             .execute()
-            
+
         if result.data:
             # Already has pending auth, update it with phone number if provided
             if phone_number:
@@ -263,15 +252,13 @@ def create_session():
                 "status": "pending",
                 "created_at": datetime.now().isoformat()
             }).execute()
-        
+
         session_id = f"{user_id}_{int(datetime.now().timestamp())}"
         return jsonify({"session_id": session_id})
-        
+
     except Exception as e:
         logger.error(f"Error creating session: {e}")
         return jsonify({"error": "Failed to create session"}), 500
-
-
 @app.route("/check_auth/<session_id>")
 def check_auth(session_id):
     """Check if session is authenticated"""
@@ -280,35 +267,31 @@ def check_auth(session_id):
         parts = session_id.split('_')
         if len(parts) < 2:
             return jsonify({"error": "Invalid session format"}), 400
-            
+
         user_id = parts[0]
-        
+
         # Check pending authentication status
         result = supabase.table("pending_authentications")\
             .select("*")\
             .eq("user_id", user_id)\
             .execute()
-            
+
         if not result.data:
             return jsonify({"error": "No authentication request found"}), 404
-            
+
         auth_request = result.data[0]
         status = auth_request.get("status", "pending")
-        
+
         if status == "completed":
             return jsonify({"authenticated": True})
         elif status == "failed":
             return jsonify({"error": "Authentication failed"}), 403
         else:
             return jsonify({"authenticated": False})
-            
+
     except Exception as e:
         logger.error(f"Error checking auth status: {e}")
         return jsonify({"error": "Internal server error"}), 500
-
-
-
-
 def run_server():
     """Run the Flask server"""
     # Run Flask with Railway PORT
@@ -316,8 +299,6 @@ def run_server():
     logger.info(f"Starting T2T2 Traditional Auth Server on port {port}")
     logger.info("Server configured and ready for traditional authentication")
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
-
-
 if __name__ == "__main__":
     print("🚀 T2T2 Traditional Authentication Server")
     print(f"📍 Starting on port {os.getenv('PORT', '5000')}")
