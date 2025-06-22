@@ -142,8 +142,17 @@ async def main():
     phone_number = pending_auth.get("phone_number")
     
     if not phone_number:
-        print("❌ No phone number found in pending authentication")
-        return
+        print("📱 No phone number on file.")
+        phone_number = input("\n📞 Enter user's phone number (with country code, e.g. +1234567890): ").strip()
+        
+        if not phone_number.startswith("+"):
+            print("❌ Phone number must include country code (e.g. +1234567890)")
+            return
+            
+        # Update the pending auth with phone number
+        supabase.table("pending_authentications").update({
+            "phone_number": phone_number
+        }).eq("id", pending_auth["id"]).execute()
     
     print(f"✅ Found pending auth - Phone: {phone_number}")
     
