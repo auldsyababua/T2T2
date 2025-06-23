@@ -1,5 +1,5 @@
-# QR Auth Server Requirements
-# Minimal dependencies for t2t2_qr_auth.py
+# T2T2 Complete Requirements
+# Dependencies for both bot and auth server
 
 # Core
 flask[async]==3.0.0
@@ -19,3 +19,8 @@ nest-asyncio==1.5.8
 
 # Logging
 python-json-logger==2.0.7
+
+# Bot dependencies
+python-telegram-bot==20.7
+langchain-openai==0.0.5
+openai==1.6.1
