@@ -12,7 +12,7 @@ qrcode==7.4.2
 Pillow==10.2.0
 
 # Database
-supabase==2.0.0
+supabase==2.4.0
 
 # Async support
 nest-asyncio==1.5.8
